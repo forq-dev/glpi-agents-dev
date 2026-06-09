@@ -1,4 +1,4 @@
-# .agents — Sistema de Agentes, Subagents e Skills
+# Sistema de Agentes, Subagents e Skills
 
 Sistema de orquestração de IA para desenvolvimento do plugin GLPI, baseado em três camadas: **Maintainer** (orquestrador), **Subagents** (especialistas) e **Skills** (capacidades reutilizáveis).
 
