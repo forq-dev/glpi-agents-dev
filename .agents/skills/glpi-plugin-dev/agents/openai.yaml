@@ -1,0 +1,4 @@
+interface:
+  display_name: "GLPI Plugin Dev"
+  short_description: "Desenvolva plugins GLPI 10.x/11.x"
+  default_prompt: "Use $glpi-plugin-dev para criar ou revisar um plugin GLPI seguindo a documentacao oficial e o codigo fonte local."
