@@ -18,9 +18,10 @@ Sistema de agentes para desenvolvimento do plugin **glpichat** (GLPI 11.x).
 │   ├── glpi-plugin-database.md
 │   ├── glpi-plugin-security.md
 │   ├── glpi-plugin-qa.md
+│   ├── glpi-plugin-context.md
 │   ├── glpi-plugin-docs.md
 │   └── glpi-plugin-api.md
-├── references/                ← contexto vivo do projeto
+├── references/                ← contexto vivo do projeto (gerenciado por glpi-plugin-context)
 │   ├── tasks.md               ← o que fazer agora
 │   ├── backlog.md             ← o que fazer depois
 │   ├── decisions.md           ← por que as coisas são como são
@@ -28,7 +29,7 @@ Sistema de agentes para desenvolvimento do plugin **glpichat** (GLPI 11.x).
 │   ├── glpi-context.md        ← ambiente GLPI local
 │   ├── inspection-notes.md    ← alertas e achados das inspeções
 │   ├── design-patterns-glpi.md← padrões de código do projeto
-│   └── backlog.md
+│   └── security-audits.md     ← histórico de auditorias de segurança
 └── skills/                    ← biblioteca de capacidades dos agentes
 ```
 
@@ -38,11 +39,26 @@ Sistema de agentes para desenvolvimento do plugin **glpichat** (GLPI 11.x).
 
 ### `MAINTAINER.md`
 Orquestrador central. Lê contexto, planeja, delega, valida e entrega.
-Não executa código diretamente, ele e pensado para delegar para o agente certo e validar a entrega, pensando sempre em qualidade e boas praticas do projeto.
+Não executa código diretamente — delega para o agente certo e valida a entrega, garantindo qualidade e boas práticas do projeto.
+
+### Subagents disponíveis
+
+| Agent | Arquivo | Responsabilidade |
+|---|---|---|
+| Backend | `agents/glpi-plugin-backend.md` | Controllers PHP, hooks, migrations, direitos, CronTask |
+| Frontend | `agents/glpi-plugin-frontend.md` | JavaScript, CSS, HTML inline de abas, polling |
+| Database | `agents/glpi-plugin-database.md` | Schema, índices, queries, migrations |
+| Security | `agents/glpi-plugin-security.md` | XSS, CSRF, IDOR, permissões, uploads |
+| QA | `agents/glpi-plugin-qa.md` | Planos de validação, testes automatizados |
+| Context | `agents/glpi-plugin-context.md` | Arquivos de referência interna em `.agents/references/` |
+| Docs | `agents/glpi-plugin-docs.md` | Documentação do produto (`docs/`, `README.md`) |
+| API | `agents/glpi-plugin-api.md` | GLPI REST API externa, itemtypes, automação |
 
 ---
 
 ## References — quando atualizar cada arquivo
+
+> Todos os arquivos em `references/` são gerenciados exclusivamente pelo agente `glpi-plugin-context`. O Maintainer os lê — nunca os edita diretamente.
 
 | Arquivo | Atualizar quando |
 |---|---|
@@ -52,7 +68,8 @@ Não executa código diretamente, ele e pensado para delegar para o agente certo
 | `plugin-context.md` | Após inspeção do código (não editar manualmente) |
 | `glpi-context.md` | Mudança de versão do GLPI ou do ambiente |
 | `inspection-notes.md` | Após inspeção — alertas, dívidas técnicas, inconsistências |
-| `design-patterns-glpi.md` | Padrões de frontend design utilizados no glpi |
+| `design-patterns-glpi.md` | Novo padrão de código ou UI confirmado por inspeção no core |
+| `security-audits.md` | Ao finalizar auditoria de segurança de qualquer feature ou modificação |
 
 ---
 
@@ -60,12 +77,13 @@ Não executa código diretamente, ele e pensado para delegar para o agente certo
 
 ```
 1. Carrega MAINTAINER.md
-2. Maintainer lê tasks.md + inspection-notes.md + glpi-context.md + plugin-context.md + decisions.md 
+2. Maintainer lê tasks.md + inspection-notes.md + glpi-context.md + plugin-context.md + decisions.md
 3. Usuário confirma/define o foco da sessão
 4. Maintainer planeja → delega para o agente certo
 5. Agente executa com as skills indicadas
 6. Maintainer valida coerência entre camadas
-7. Entrega + atualiza tasks.md e decisions.md
+7. glpi-plugin-context atualiza references/ (tasks.md, decisions.md, etc.)
+8. glpi-plugin-docs atualiza docs/ e README.md (quando aplicável)
 ```
 
 ---

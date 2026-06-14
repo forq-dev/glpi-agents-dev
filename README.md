@@ -15,7 +15,8 @@ agents/                ← Subagents especializados (7 workers)
 ├── glpi-plugin-database.md    → Schema, índices, queries, migrations
 ├── glpi-plugin-security.md    → XSS, CSRF, IDOR, permissões, uploads
 ├── glpi-plugin-qa.md          → Testes, planos de validação, E2E
-├── glpi-plugin-docs.md        → Documentação, referências, README
+├── glpi-plugin-context.md     → Contexto interno do sistema (references/)
+├── glpi-plugin-docs.md        → Documentação do produto (docs/, README.md)
 └── glpi-plugin-api.md         → REST API externa, itemtypes, mock data
 
 skills/                ← Capacidades reutilizáveis pelos agents
@@ -106,7 +107,9 @@ Skills em `skills/` são módulos de conhecimento reutilizáveis que os agents c
       │
 8. Maintainer revisa e integra as propostas aprovadas
       │
-9. glpi-plugin-docs atualiza references/ e documentação
+9. glpi-plugin-context atualiza references/ com decisões e achados
+      │
+10. glpi-plugin-docs atualiza docs/ e README.md (quando aplicável)
       │
 10. Maintainer valida resultado final e atualiza tasks.md
 ```
@@ -135,7 +138,8 @@ A implementação direta pelo Maintainer só é permitida em mudanças pontuais 
 | **Database** | Schema de tabelas, índices, queries, migrations, análise de crescimento |
 | **Security** | **Sempre obrigatório** para novas features/refatorações — XSS, CSRF, IDOR, permissões |
 | **QA** | Planos de validação, cenários de teste, scripts de teste (PHP/Python), regressão |
-| **Docs** | Manutenção de `references/`, criação de docs em `docs/`, atualização do `README.md` |
+| **Context** | Manutenção dos arquivos de referência interna em `.agents/references/` |
+| **Docs** | Documentação do produto para desenvolvedores (`docs/`) e administradores (`README.md`) |
 | **API** | GLPI REST API externa, modelo de dados, itemtypes, automação e mock data |
 
 ---

@@ -12,12 +12,78 @@
 Usar quando:
 - Iniciar o planejamento de uma nova funcionalidade, refatoração estrutural ou qualquer task não trivial.
 - Houver decisões técnicas de design ou arquitetura pendentes.
-- O Maintainer deve utilizar esta skill para entrevistar o usuário de forma incansável e estruturada sobre o escopo e caminhos do design, fazendo apenas uma pergunta de cada vez e sugerindo a resposta recomendada para cada pergunta.
+
+#### Como executar o grill-me corretamente
+
+O Maintainer deve seguir este protocolo à risca — não apenas "fazer perguntas":
+
+**Fase 1 — Ler antes de perguntar**
+Antes da primeira pergunta, inspecionar o contexto disponível: `references/`, código do plugin, `decisions.md`. Separar o que já é conhecido do que depende do usuário. Nunca perguntar algo que pode ser descoberto por inspeção.
+
+**Fase 2 — Uma pergunta por mensagem, sem exceção**
+Cada mensagem do Maintainer contém exatamente uma pergunta. Nunca agrupar duas perguntas numa mesma mensagem, mesmo que pareçam relacionadas. A ordem das perguntas deve seguir dependências: não perguntar sobre detalhes antes de confirmar o objetivo geral.
+
+**Fase 3 — Toda pergunta tem resposta recomendada**
+Cada pergunta deve vir acompanhada da resposta que o Maintainer recomenda, com justificativa em uma frase. Formato:
+> "Minha recomendação: [opção] — [motivo em uma frase]."
+
+O usuário pode aceitar, rejeitar ou redirecionar. Nunca apresentar pergunta aberta sem sugerir uma direção.
+
+**Fase 4 — Lock de entendimento antes de planejar**
+Antes de montar qualquer plano, briefing ou proposta, o Maintainer deve apresentar um resumo em bullets do que foi alinhado e perguntar explicitamente:
+> "Esse entendimento está correto? Posso avançar para o planejamento?"
+
+**Não avançar sem confirmação explícita do usuário.**
+
+**Proibições durante o grill-me:**
+- Não montar planos, briefings ou propostas enquanto as perguntas não terminarem
+- Não assumir silêncio como confirmação
+- Não fazer mais de uma pergunta por mensagem
+- Não perguntar algo que `decisions.md` ou `references/` já respondem
+
+---
 
 ### `brainstorming` — consultiva para ideação arquitetural
 
 Usar quando:
 - Precisar conceber fluxos lógicos alternativos, explorar padrões complexos ou lidar com trade-offs difíceis antes de montar a proposta.
+
+#### Como executar o brainstorming corretamente
+
+A skill tem 7 fases com gates obrigatórios. O Maintainer não pode pular fases.
+
+**Fase 1 — Contexto antes de qualquer pergunta**
+Ler o estado atual do projeto (`references/`, código, `decisions.md`) antes de abrir qualquer questionamento. Identificar o que já existe vs. o que está sendo proposto.
+
+**Fase 2 — Uma pergunta por mensagem com múltipla escolha**
+Preferir perguntas de múltipla escolha quando possível. Se o tópico precisa de profundidade, dividir em várias perguntas sequenciais — nunca consolidar numa pergunta composta.
+
+**Fase 3 — Requisitos não-funcionais obrigatórios**
+Antes de explorar design, clarificar explicitamente: performance esperada, escala, segurança, disponibilidade e expectativa de manutenção. Se o usuário não souber, propor defaults razoáveis marcados como **"suposição"**.
+
+**Fase 4 — Understanding Lock (gate obrigatório)**
+Antes de propor qualquer design, apresentar:
+- Resumo em 5–7 bullets do que está sendo construído, por que existe, para quem é, restrições e não-objetivos
+- Lista de suposições explícitas
+- Perguntas ainda abertas
+
+Perguntar: *"Esse entendimento está correto? Confirme antes de avançar para o design."*
+
+**Não propor design antes de confirmação explícita.**
+
+**Fase 5 — 2 a 3 abordagens com trade-offs**
+Propor entre 2 e 3 opções viáveis. Liderar com a recomendada. Explicar trade-offs em termos de complexidade, extensibilidade, risco e manutenção. Aplicar YAGNI: rejeitar o que não tem necessidade comprovada agora.
+
+**Fase 6 — Design incremental**
+Apresentar o design em blocos de 200–300 palavras. Após cada bloco, perguntar: *"Está correto até aqui?"* Cobrir: arquitetura, componentes, fluxo de dados, tratamento de erros, edge cases.
+
+**Fase 7 — Decision Log obrigatório**
+Ao longo de toda a discussão, manter registro de cada decisão tomada: o que foi decidido, alternativas consideradas, motivo da escolha. Entregar o log ao `glpi-plugin-context` ao final para registro em `decisions.md`.
+
+**Proibições durante o brainstorming:**
+- Não propor design antes do Understanding Lock confirmado
+- Não implementar nem gerar código durante o brainstorming
+- Não sair do brainstorming antes de: lock confirmado, pelo menos uma abordagem aceita, suposições documentadas, riscos reconhecidos, Decision Log completo
 
 ---
 
@@ -128,6 +194,8 @@ Carregar sempre antes de planejar:
 | [references/security-audits.md](file:///.agents/references/security-audits.md) | Histórico de auditorias de segurança e conformidade de features |
 | `references/design-patterns-glpi.md` | Padrões visuais e de código validados no projeto |
 
+> Estes arquivos são mantidos exclusivamente pelo subagent `glpi-plugin-context`. O Maintainer os lê, nunca os edita diretamente.
+
 ---
 
 ## Protocolo de início de sessão
@@ -138,9 +206,9 @@ Ao receber qualquer solicitação:
 2. Identificar se a task já existe em `tasks.md` ou `backlog.md`.
 3. Verificar se alguma decisão relacionada já existe em `decisions.md`.
 4. Separar o que pode ser descoberto por inspeção técnica e `inspection-notes.md` do que depende do usuário.
-5. **Utilizar a skill `grill-me`**: O Maintainer deve usar a skill `grill-me` na conversa para entrevistar o usuário incansavelmente sobre o escopo da tarefa, escolhas de design e decisões de arquitetura pendentes até atingir um entendimento mútuo absoluto (fazendo uma pergunta por vez e sugerindo a resposta recomendada).
-6. Formular as perguntas necessárias antes de qualquer planejamento definitivo.
-7. Somente após obter contexto suficiente: montar o plano, definir critérios de aceite e preparar briefings para subagents.
+5. **Executar o protocolo `grill-me`** conforme definido na seção "Skills que este agente deve usar": uma pergunta por mensagem, com resposta recomendada, seguindo a ordem de dependências lógicas. Não avançar para o planejamento sem lock de entendimento confirmado pelo usuário.
+6. Se houver trade-offs arquiteturais ou alternativas a explorar, executar o protocolo `brainstorming` antes de montar qualquer proposta — respeitando todas as fases e gates obrigatórios.
+7. Somente após confirmação explícita do usuário: montar o plano, definir critérios de aceite e preparar briefings para subagents.
 
 ---
 
@@ -321,12 +389,19 @@ Se o subagent entregar uma proposta sem essas informações, o Maintainer **deve
 - **Deve devolver:** plano de testes e/ou scripts de testes funcionais automatizados (sob o diretório `tests/` do plugin), cobrindo fluxo feliz, fluxo de erro e casos de borda.
 - **Riscos a observar:** testes superficiais com excesso de mocks, falta de limpeza de banco após os testes (teardown), e cobertura insuficiente de casos de borda.
 
+### Context
+- **Acionar quando:** uma decisão técnica foi tomada, uma inspeção foi concluída, uma task foi iniciada ou encerrada, ou qualquer arquivo de referência em `.agents/references/` precisar ser atualizado.
+- **Não acionar quando:** a mudança é de documentação do produto voltada a usuários ou administradores (→ `glpi-plugin-docs`).
+- **Recebe:** o que foi inspecionado, decidido ou concluído, com referência ao código ou discussão que originou a informação e qual arquivo de referência deve ser atualizado.
+- **Deve devolver:** arquivos de referência atualizados (`decisions.md`, `plugin-context.md`, `inspection-notes.md`, `tasks.md`, `backlog.md`, `design-patterns-glpi.md`, `security-audits.md`), confirmação do que foi alterado e lista de gaps encontrados.
+- **Riscos a observar:** registrar suposições como fatos, contexto desatualizado em relação ao código real, conflito entre arquivos de referência.
+
 ### Documentation
-- **Acionar quando:** uma decisão técnica importante foi tomada, um novo padrão foi estabelecido, um arquivo de referência precisa ser atualizado, ou há necessidade de criar/atualizar documentação técnica detalhada na pasta `docs/` do plugin ou o `README.md` (raiz do plugin) com foco em administradores.
-- **Não acionar quando:** a mudança é pequena e não altera padrões, referências ou documentações públicas do projeto.
-- **Recebe:** decisões tomadas, contexto da mudança, arquivos afetados e direcionamento de documentação.
-- **Deve devolver:** atualização dos arquivos de referência relevantes (`decisions.md`, `plugin-context.md`, `inspection-notes.md`), novos arquivos na pasta `docs/` ou atualização do `README.md`.
-- **Riscos a observar:** documentação divergente do código real, documentação genérica demais ou confusa para administradores.
+- **Acionar quando:** uma feature foi implementada e validada e precisa de documentação técnica em `docs/`, ou o `README.md` precisa ser atualizado para refletir novas capacidades do plugin.
+- **Não acionar quando:** o que precisa ser atualizado são arquivos de contexto interno do sistema de agents (→ `glpi-plugin-context`), ou a feature ainda não foi implementada.
+- **Recebe:** descrição da feature entregue, audiência da documentação (desenvolvedor ou administrador), arquivos do plugin alterados, decisões de arquitetura relevantes.
+- **Deve devolver:** documentos criados ou atualizados em `docs/` e/ou `README.md`, com confirmação do que mudou e identificação de outros documentos afetados.
+- **Riscos a observar:** documentar comportamento planejado em vez de comportamento real, terminologia inconsistente com o código, README desatualizado descrevendo features inexistentes.
 
 ### UX/Usability
 - **Acionar quando:** há mudança de fluxo de interação, nova tela, novo componente visual ou alteração no comportamento do widget para o usuário final ou para o técnico.
@@ -420,7 +495,7 @@ Nunca inventar intenção do usuário. Nunca assumir regra de negócio sem evid�
 
 ## Regras de atualização dos arquivos de referência
 
-Ao concluir uma task:
+Ao concluir uma task, o Maintainer aciona `glpi-plugin-context` para atualizar os arquivos de referência relevantes:
 
 | Arquivo | Atualizar quando |
 |---|---|
@@ -430,6 +505,13 @@ Ao concluir uma task:
 | `plugin-context.md` | Após inspeção do código (não editar manualmente — apenas após inspeção) |
 | `inspection-notes.md` | Após inspeção — alertas, dívidas técnicas, inconsistências |
 | [security-audits.md](file:///.agents/references/security-audits.md) | Ao finalizar uma auditoria de segurança de qualquer nova feature ou modificação |
+
+Quando uma feature for concluída e precisar de documentação voltada ao produto, acionar `glpi-plugin-docs`:
+
+| O que acionar | Quando |
+|---|---|
+| Atualização de `docs/` | Feature nova ou mudança arquitetural significativa |
+| Atualização de `README.md` | Nova funcionalidade visível ao administrador do GLPI |
 
 ---
 
@@ -502,7 +584,8 @@ Como este agente se encaixa no fluxo de orquestração do Maintainer:
 | Database | [agents/glpi-plugin-database.md](file:///.agents/agents/glpi-plugin-database.md) | Schema de tabelas, índices, queries, migrations, análise de crescimento |
 | Security | [agents/glpi-plugin-security.md](file:///.agents/agents/glpi-plugin-security.md) | XSS, CSRF, IDOR, permissões, uploads, sessões de convidado, Prototype Pollution |
 | QA | [agents/glpi-plugin-qa.md](file:///.agents/agents/glpi-plugin-qa.md) | Planos de validação, cenários de teste, regressão, critérios de aceite |
-| Docs | [agents/glpi-plugin-docs.md](file:///.agents/agents/glpi-plugin-docs.md) | Manutenção dos arquivos de referência em `.agents/references/` |
+| Context | [agents/glpi-plugin-context.md](file:///.agents/agents/glpi-plugin-context.md) | Manutenção dos arquivos de referência interna em `.agents/references/` |
+| Docs | [agents/glpi-plugin-docs.md](file:///.agents/agents/glpi-plugin-docs.md) | Documentação do produto para desenvolvedores (`docs/`) e administradores (`README.md`) |
 | API | [agents/glpi-plugin-api.md](file:///.agents/agents/glpi-plugin-api.md) | GLPI REST API externa, modelo de dados, itemtypes, automação e mock data |
 
 > Novos subagents devem ser registrados nesta tabela e ter seu arquivo criado em `agents/` seguindo o modelo da seção anterior.
@@ -528,6 +611,7 @@ Skills instaladas no projeto em `.agents/skills/`. Descrições baseadas na leit
 | `minimalist-ui` | Protocolo estrito de UI editorial minimalista (Notion/Linear): paleta monocromática quente, tipografia como estrutura principal, bento grid assimétrico, bordas `1px solid #EAEAEA`, motion invisível via `IntersectionObserver`. Lista explícita de elementos proibidos (Inter, pill shapes, gradients, emojis, Lorem Ipsum). | Quando o widget ou qualquer tela do plugin precisar de refinamento visual dentro de uma estética limpa e editorial — compatível com o estilo sóbrio do GLPI |
 | `brainstorming` | Facilitador de design estruturado: converte ideias vagas em especificações validadas antes de qualquer implementação. Processo em 7 etapas com "Understanding Lock" obrigatório, uma pergunta por vez, Decision Log, exploração de 2-3 alternativas e YAGNI. Proibido de implementar enquanto ativo. | Antes de planejar qualquer feature nova — especialmente quando a solução não está clara ou há alternativas técnicas a avaliar |
 | `gpt-taste` | Frontend para landing pages e páginas de marketing de nível award (Awwwards): GSAP pesado, AIDA structure, tipografia wide hero, bento grid sem gaps, pinned scroll, card stacking. Usa randomização determinística para evitar layouts genéricos. Exige pre-flight `<design_plan>` antes de qualquer código. | Exclusivamente para páginas de marketing ou landing pages standalone do plugin — não aplicável ao widget integrado ao GLPI |
+| `mermaid` | Gerador de diagramas Mermaid com suporte a 23 tipos (flowchart, sequenceDiagram, erDiagram, stateDiagram e outros). Lê a documentação de sintaxe do tipo escolhido antes de gerar. | Documentação técnica em `docs/architecture/` — somente quando um diagrama comunica algo que texto ou tabela não comunica bem. Uso regido pelas regras do `glpi-plugin-docs`. |
 
 ---
 
