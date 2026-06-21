@@ -23,9 +23,12 @@ Para plugin distribuível, validar a necessidade de:
 
 ## Tradução
 
-- Usar domínio de tradução do plugin, normalmente o `pluginkey`.
-- Preferir `__s()`, `_n()` e helpers de tradução GLPI conforme o core local.
-- Não hardcodar textos públicos se o plugin precisa ser traduzível.
+Ver `references/translation.md` para o guia completo de tradução com gettext, helpers PHP/JS, estrutura de `.pot`/`.po`/`.mo`, extração de strings, compilação e integração com Transifex.
+
+Resumo mínimo:
+- Usar domínio de tradução do plugin (`pluginkey`) em todos os helpers.
+- Toda string pública deve usar `__()`, `__s()`, `_n()`, `_x()` ou `_nx()` — nunca hardcodada.
+- Incluir `.mo` compilado ao lado de cada `.po` — o GLPI só carrega o `.mo`.
 
 ## Release
 

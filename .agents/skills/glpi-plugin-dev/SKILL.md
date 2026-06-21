@@ -69,6 +69,7 @@ Load only the reference files needed for the task:
 - `references/architecture.md`: feature-to-GLPI-mechanism matrix to avoid custom workarounds.
 - `references/security.md`: rights, session, form, and mutation safety checklist.
 - `references/packaging.md`: release, marketplace metadata, translation, and distribution checklist.
+- `references/translation.md`: gettext helpers (`__`, `__s`, `_n`, `_x`, `_nx`), folder structure, `.pot`/`.po`/`.mo` workflow, xgettext extraction, Transifex CI, JS translation, and antipatterns.
 - `references/corporate-readiness.md`: production-readiness checks for enterprise plugins.
 - `references/antipatterns.md`: explicit patterns to reject before generating code.
 

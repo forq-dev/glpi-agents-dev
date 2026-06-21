@@ -5,7 +5,7 @@ Este arquivo define as regras obrigatórias de comportamento e fluxo de trabalho
 ## 🚨 PONTO DE ENTRADA OBRIGATÓRIO
 
 - **Antes de planejar, codificar ou editar qualquer arquivo**, você deve ler e carregar o arquivo de orquestração principal: [MAINTAINER.md](file:///.agents/MAINTAINER.md) utilizando as skills de `brainstorming` e `grill-me` para um melhor entendimento do contexto e das tarefas.
-- Não trate o diretório `.agents/` ou `.claude/` como documentação passiva. Ele é uma instrução operacional mandatória. Em caso de conflito entre a conveniência de implementação direta e o fluxo do Maintainer, **o fluxo do Maintainer sempre vence**.
+- Não trate o diretório `.agents/` como documentação passiva. Ele é uma instrução operacional mandatória. Em caso de conflito entre a conveniência de implementação direta e o fluxo do Maintainer, **o fluxo do Maintainer sempre vence**.
 
 ## 🔄 Orquestração Obrigatória
 

@@ -1,236 +1,250 @@
-# Sistema de Agentes, Subagents e Skills
+# glpi-agents-dev
 
-Sistema de orquestração de IA para desenvolvimento do plugin GLPI, baseado em três camadas: **Maintainer** (orquestrador), **Subagents** (especialistas) e **Skills** (capacidades reutilizáveis).
+Repositório central de orquestração de IA para desenvolvimento de plugins GLPI.
 
----
-
-## Arquitetura de 3 Camadas
-
-```
-MAINTAINER.md          ← Orquestrador central (não escreve código)
-
-agents/                ← Subagents especializados (7 workers)
-├── glpi-plugin-backend.md     → PHP, controllers, hooks, migrations
-├── glpi-plugin-frontend.md    → JavaScript, CSS, HTML inline, DOM
-├── glpi-plugin-database.md    → Schema, índices, queries, migrations
-├── glpi-plugin-security.md    → XSS, CSRF, IDOR, permissões, uploads
-├── glpi-plugin-qa.md          → Testes, planos de validação, E2E
-├── glpi-plugin-context.md     → Contexto interno do sistema (references/)
-├── glpi-plugin-docs.md        → Documentação do produto (docs/, README.md)
-└── glpi-plugin-api.md         → REST API externa, itemtypes, mock data
-
-skills/                ← Capacidades reutilizáveis pelos agents
-├── glpi-plugin-dev/           → Desenvolvimento GLPI (obrigatória para backend)
-├── php-pro/                   → PHP idiomático e performático
-├── javascript-pro/            → JavaScript moderno e async
-├── frontend-security-coder/   → Segurança de DOM e XSS
-├── frontend-design/           → Design visual intencional
-├── design-taste-frontend/     → Critério estético e responsividade
-├── animejs-animation/         → Animações de alta fidelidade
-├── minimalist-ui/             → UI editorial limpa (Notion/Linear)
-├── gpt-taste/                 → Landing pages com GSAP (marketing)
-├── database-architect/        → Design de schema do zero
-├── database-design/           → Princípios de modelagem
-├── database-optimizer/        → Tuning de queries e índices
-├── security-audit/            → Auditoria formal multi-fase
-├── python-pro/                → Python 3.12+ idiomático
-├── python-testing-patterns/   → Testes com pytest e fixtures
-├── brainstorming/             → Design estruturado antes de implementar
-└── grill-me/                  → Entrevista incansável de escopo
-
-references/            ← Contexto vivo do projeto (gerado por inspeção)
-├── tasks.md                   → O que está em execução agora
-├── backlog.md                 → O que está planejado para depois
-├── decisions.md               → Decisões técnicas já tomadas
-├── plugin-context.md          → Estrutura atual do plugin
-├── glpi-context.md            → Ambiente GLPI local
-├── inspection-notes.md        → Alertas e dívidas técnicas
-├── design-patterns-glpi.md    → Padrões de código e UI validados
-└── security-audits.md         → Histórico de auditorias de segurança
-```
+Contém os agentes, subagents, skills e arquivos de referência que guiam todo o processo de desenvolvimento — do planejamento à auditoria de segurança.
 
 ---
 
-## Conceitos Fundamentais
+## O que é isso
 
-### Maintainer (Orquestrador)
+Quando você desenvolve um plugin GLPI com IA, o agente precisa de contexto especializado: como o GLPI estrutura controllers, como funcionam hooks, quais padrões de segurança são obrigatórios, como registrar direitos de acesso. Sem isso, o agente gera código genérico que quebra ou não segue as convenções do GLPI.
 
-O `MAINTAINER.md` é o ponto de entrada obrigatório. Ele **não escreve código** — sua função é:
+Este repositório resolve isso com um sistema em três camadas:
 
-- Entender completamente a task antes de qualquer delegação
-- Reunir contexto via inspeção técnica e perguntas ao usuário
-- Identificar quais subagents acionar e em que ordem
-- Preparar briefings completos usando o template padrão
-- Revisar o trabalho dos subagents antes de considerar a task concluída
-- Identificar riscos e registrar decisões
-- Garantir a **Filosofia de Integração Nativa** (Look & Feel GLPI)
-
-### Subagents (Especialistas)
-
-Cada subagent em `agents/` é um worker especializado com:
-
-- **Propósito**: O que faz em uma frase
-- **Responsabilidades**: Capacidades concretas, não intenções genéricas
-- **Limites**: O que não faz, o que delega a outro agente
-- **Skills associadas**: Quais skills deve carregar para executar seu trabalho
-- **Entradas esperadas**: O que o Maintainer deve fornecer no briefing
-- **Saída esperada**: Formato e nível de detalhe da resposta
-- **Validações obrigatórias**: Checklist antes de entregar
-
-### Skills (Capacidades)
-
-Skills em `skills/` são módulos de conhecimento reutilizáveis que os agents carregam sob demanda. Cada skill define um domínio específico (PHP, segurança, design, banco de dados) e é estritamente **read-only** — agents nunca criam, modificam ou excluem arquivos de skills.
+- **Maintainer** — orquestrador central que planeja, delega e valida. Nunca escreve código.
+- **Subagents** — especialistas por domínio (backend, frontend, segurança, banco, QA, etc.)
+- **Skills** — módulos de conhecimento reutilizáveis carregados sob demanda
 
 ---
 
-## Fluxo de Trabalho Padrão
+## Estrutura
 
 ```
-1. MAINTAINER.md é carregado
-      │
+.agents/
+├── MAINTAINER.md          ← ponto de entrada obrigatório — leia sempre primeiro
+├── index.md               ← mapa do sistema
+│
+├── agents/                ← subagents especializados
+│   ├── glpi-plugin-backend.md      → controllers PHP, hooks, migrations, direitos
+│   ├── glpi-plugin-frontend.md     → JavaScript, CSS, HTML inline, polling
+│   ├── glpi-plugin-database.md     → schema, índices, queries, migrations
+│   ├── glpi-plugin-security.md     → XSS, CSRF, IDOR, permissões, uploads
+│   ├── glpi-plugin-qa.md           → testes automatizados, planos de validação
+│   ├── glpi-plugin-context.md      → mantém os arquivos de references/ atualizados
+│   ├── glpi-plugin-docs.md         → documentação do produto (docs/, README.md)
+│   ├── glpi-plugin-api.md          → GLPI REST API externa, itemtypes, automação
+│   ├── glpi-plugin-ux.md           → fluxos de interação, feedback visual
+│   └── glpi-plugin-performance.md  → queries, polling, assets, N+1
+│
+├── references/            ← contexto vivo do projeto (específico por plugin)
+│   ├── tasks.md                → o que está em execução agora
+│   ├── backlog.md              → o que está planejado para depois
+│   ├── decisions.md            → decisões técnicas já tomadas
+│   ├── plugin-context.md       → estrutura atual do plugin (gerado por inspeção)
+│   ├── glpi-context.md         → versão do GLPI e paths do ambiente local
+│   ├── inspection-notes.md     → alertas e dívidas técnicas
+│   ├── design-patterns-glpi.md → padrões de código e UI validados
+│   └── security-audits.md      → histórico de auditorias de segurança
+│
+└── skills/                ← capacidades reutilizáveis (read-only — nunca modificar)
+    │
+    ├── # GLPI
+    ├── glpi-plugin-dev/        → padrões de desenvolvimento GLPI (obrigatória para backend)
+    │
+    ├── # PHP / JavaScript / Python
+    ├── php-pro/                → PHP idiomático e performático
+    ├── javascript-pro/         → JavaScript moderno e async
+    ├── python-pro/             → Python 3.12+ idiomático
+    ├── python-testing-patterns/→ testes com pytest e fixtures
+    │
+    ├── # Frontend / Design
+    ├── frontend-design/        → design visual intencional
+    ├── frontend-security-coder/→ segurança de DOM e XSS
+    ├── design-taste-frontend/  → critério estético e responsividade
+    ├── minimalist-ui/          → UI editorial limpa (estilo Notion/Linear)
+    ├── gpt-taste/              → landing pages com alto padrão visual
+    │
+    ├── # Animação
+    ├── animejs-animation/      → animações com Anime.js
+    ├── gsap-core/              → API central GSAP (tweens, easing, stagger)
+    ├── gsap-timeline/          → sequenciamento de animações com Timeline
+    ├── gsap-performance/       → performance: transforms, will-change, quickTo
+    ├── gsap-plugins/           → Flip, SplitText, Draggable, DrawSVG, MorphSVG
+    ├── gsap-utils/             → clamp, mapRange, snap, random, selector
+    ├── gsap-scrolltrigger/     → animações scroll-driven
+    │
+    ├── # Banco de dados
+    ├── database-architect/     → design de schema do zero
+    ├── database-design/        → princípios de modelagem relacional
+    ├── database-optimizer/     → tuning de queries e índices
+    │
+    ├── # Segurança
+    ├── security-audit/         → auditoria formal multi-fase
+    │
+    ├── # Diagramação
+    ├── mermaid/                → diagramas técnicos com Mermaid
+    │
+    └── # Processo / Método
+        ├── brainstorming/      → design estruturado antes de implementar
+        └── grill-me/           → entrevista incansável de escopo
+```
+
+---
+
+## Como usar num projeto
+
+### Opção 1 — Git Subtree (recomendado)
+
+O subtree copia o conteúdo deste repositório para dentro do seu projeto como arquivos normais. Sem dependências externas, sem comandos extras no clone — funciona para qualquer pessoa que clonar o projeto.
+
+**Primeira vez — importar para dentro do projeto:**
+```bash
+cd /caminho/do/seu/plugin
+
+git subtree add \
+  --prefix=.agents \
+  https://github.com/seu-user/glpi-agents-dev \
+  main \
+  --squash
+```
+
+**Sincronizar quando este repositório for atualizado:**
+```bash
+git subtree pull \
+  --prefix=.agents \
+  https://github.com/seu-user/glpi-agents-dev \
+  main \
+  --squash
+```
+
+**Enviar melhorias feitas no plugin de volta para cá:**
+```bash
+git subtree push \
+  --prefix=.agents \
+  https://github.com/seu-user/glpi-agents-dev \
+  main
+```
+
+O `--squash` condensa toda a história deste repositório em um único commit no projeto — mantém o histórico do plugin limpo.
+
+#### O que acontece com o `references/`
+
+Os arquivos em `references/` são específicos por projeto — o `tasks.md` do glpichat não é o mesmo de outro plugin. Como eles começam vazios (só templates), o comportamento é seguro:
+
+- Na primeira importação: chegam vazios, você os preenche localmente
+- Nos pulls seguintes: se você modificou localmente e o template original não mudou, o git não gera conflito
+- Se o template mudar (coisa rara): você resolve um merge pontual só nesses arquivos
+
+### Opção 2 — Cópia manual
+
+Se não quiser usar subtree, copie a pasta `.agents/` para dentro do projeto. Não tem sincronização automática — você propaga atualizações na mão.
+
+---
+
+## Compatibilidade por plataforma de IA
+
+Diferentes ferramentas leem o ponto de entrada em lugares diferentes:
+
+| Ferramenta | Arquivo lido | Como configurar |
+|---|---|---|
+| Claude Code | `CLAUDE.md` na raiz | Criar symlink: `ln -s AGENTS.md CLAUDE.md` |
+| Cursor / Windsurf | `AGENTS.md` na raiz | Já existe neste repositório |
+| Kiro | `.kiro/steering/*.md` | Copiar ou linkar `MAINTAINER.md` para `.kiro/steering/` |
+| Genérico | `.agents/MAINTAINER.md` | Apontar o agente diretamente para este arquivo |
+
+Neste repositório, `CLAUDE.md` já é um symlink para `.agents/MAINTAINER.md`.
+
+Para criar os links num projeto que usa subtree:
+```bash
+# Claude Code
+ln -s AGENTS.md CLAUDE.md
+
+# Kiro
+mkdir -p .kiro/steering
+ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
+```
+
+---
+
+## Como o sistema funciona
+
+### Fluxo de uma sessão
+
+```
+1. Agente carrega MAINTAINER.md
+         │
 2. Maintainer lê references/* (tasks, decisions, plugin-context, etc.)
-      │
-3. Maintainer usa grill-me para alinhar escopo com o usuário
-      │
-4. Maintainer gera briefings formais para cada subagent
-      │
-5. Maintainer dispara subagents em paralelo ou sequencial:
-      │
-      ├── glpi-plugin-backend    (lógica PHP)
-      ├── glpi-plugin-frontend   (UI/JavaScript)
-      ├── glpi-plugin-database   (schema/índices)
-      └── glpi-plugin-api        (REST API externa, se aplicável)
-      │
-6. glpi-plugin-qa cria plano de testes e cenários de validação
-      │
-7. glpi-plugin-security audita todas as mudanças de código
-      │
+         │
+3. Maintainer usa grill-me → alinha escopo com o usuário (1 pergunta por vez)
+         │
+4. Maintainer usa brainstorming → explora trade-offs se necessário
+         │
+5. Maintainer gera briefings formais e delega para subagents
+         │
+         ├── glpi-plugin-backend    (lógica PHP)
+         ├── glpi-plugin-frontend   (UI / JavaScript)
+         ├── glpi-plugin-database   (schema / índices)
+         └── glpi-plugin-api        (REST API, se aplicável)
+         │
+6. glpi-plugin-qa → plano de testes e cenários de validação
+         │
+7. glpi-plugin-security → auditoria obrigatória antes de qualquer merge
+         │
 8. Maintainer revisa e integra as propostas aprovadas
-      │
-9. glpi-plugin-context atualiza references/ com decisões e achados
-      │
-10. glpi-plugin-docs atualiza docs/ e README.md (quando aplicável)
-      │
-10. Maintainer valida resultado final e atualiza tasks.md
+         │
+9. glpi-plugin-context → atualiza references/ com decisões e achados
+         │
+10. glpi-plugin-docs → atualiza docs/ e README.md (quando aplicável)
 ```
 
+### Regras fundamentais
+
+**O Maintainer não escreve código.** Ele planeja, delega, revisa e valida. Implementação sempre vai para um subagent.
+
+**Auditoria de segurança é mandatória.** Toda feature nova ou refatoração passa pelo `glpi-plugin-security` antes de ser integrada. O resultado vai para `references/security-audits.md`.
+
+**Skills são read-only.** Nenhum agente cria, modifica ou exclui arquivos em `.agents/skills/`.
+
+**Contexto vem dos arquivos, não da memória.** O Maintainer lê `references/` a cada sessão — não assume que lembra do que foi decidido antes.
+
+**Version Detection Gate.** Todo subagent de backend, frontend ou banco deve confirmar `GLPI_VERSION` com evidência de arquivo e linha antes de propor qualquer implementação.
+
 ---
 
-## Gatilhos de Delegação Obrigatória
+## Quando acionar cada subagent
 
-O Maintainer **deve** acionar subagents quando a task envolver:
-
-1. Alteração em **mais de 1 arquivo**
-2. Refatoração estrutural ou lógica de negócio complexa
-3. Criação ou modificação de testes automatizados
-4. Áreas críticas de segurança, controllers, uploads, autenticação ou permissões
-
-A implementação direta pelo Maintainer só é permitida em mudanças pontuais de 1 arquivo e baixíssimo risco.
-
----
-
-## Subagents — Resumo
-
-| Agent | Quando acionar |
+| Subagent | Acionar quando |
 |---|---|
-| **Backend** | Controllers PHP, hooks, funções, migrations, direitos, CronTask, notificações, abas |
-| **Frontend** | JavaScript, CSS, HTML inline de abas, polling, renderização de mensagens |
-| **Database** | Schema de tabelas, índices, queries, migrations, análise de crescimento |
-| **Security** | **Sempre obrigatório** para novas features/refatorações — XSS, CSRF, IDOR, permissões |
-| **QA** | Planos de validação, cenários de teste, scripts de teste (PHP/Python), regressão |
-| **Context** | Manutenção dos arquivos de referência interna em `.agents/references/` |
-| **Docs** | Documentação do produto para desenvolvedores (`docs/`) e administradores (`README.md`) |
-| **API** | GLPI REST API externa, modelo de dados, itemtypes, automação e mock data |
+| **Backend** | controllers PHP, hooks, migrations, direitos, CronTask, notificações, abas |
+| **Frontend** | JavaScript, CSS, HTML inline, polling, renderização |
+| **Database** | criação/alteração de tabelas, índices, queries, migrations |
+| **Security** | **sempre obrigatório** para novas features ou refatorações |
+| **QA** | definir plano de testes, criar scripts automatizados (PHP/Python) |
+| **Context** | atualizar qualquer arquivo em `references/` após decisões ou inspeções |
+| **Docs** | documentar feature entregue em `docs/` ou `README.md` do plugin |
+| **API** | interagir com GLPI via REST — autenticação, CRUD, mock data, automação |
+| **UX** | nova tela, novo fluxo de interação, alteração de comportamento visível |
+| **Performance** | queries, polling, assets, tabelas com crescimento contínuo |
 
 ---
 
-## Template de Briefing
+## Princípios de desenvolvimento
 
-Todo subagent recebe um briefing do Maintainer neste formato:
+**Integração nativa ao GLPI.** O plugin deve parecer parte do GLPI, não um elemento externo colado. Isso significa usar abas nos formulários core, menus nativos, variáveis CSS do Tabler/Bootstrap (`--tblr-body-bg`, `--tblr-body-color`), e direitos gerenciáveis na matriz de perfis do GLPI.
 
-```
-## Briefing para [nome do subagent]
+**Sem overengineering.** O Maintainer rejeita tabelas sem necessidade clara, bibliotecas JS pesadas onde vanilla resolve, abstrações genéricas para problemas específicos, e qualquer coisa que aumente o tempo de carregamento sem benefício mensurável.
 
-**Objetivo da solicitação** — uma frase objetiva
-**Contexto funcional** — fluxo de uso esperado
-**Contexto técnico** — estado atual do plugin relevante para a task
-**Motivo** — por que este subagent especificamente
-**Arquivos a analisar** — lista explícita de arquivos do plugin e GLPI core
-**Documentação a consultar** — URLs específicas da doc oficial
-**Restrições obrigatórias** — o que não pode ser feito
-**Decisões já tomadas** — referência a decisions.md
-**Perguntas ainda abertas** — o que ainda não foi decidido
-**Riscos conhecidos** — riscos identificados pelo Maintainer
-**O que deve fazer** — lista de responsabilidades
-**O que não deve fazer** — limites de escopo
-**Critérios de aceite** — o que precisa ser verdade para aprovação
-**Validações esperadas** — como verificar o próprio trabalho
-**Formato esperado de resposta** — estrutura da entrega
-```
+**Hierarquia de fontes.** Na dúvida, a ordem é: código real do GLPI core → documentação oficial do GLPI → decisões explícitas do usuário. O código do plugin e os `references/` são complementares, não podem contradizer o core.
 
 ---
 
-## Filosofia de Integração Nativa
+## Convenções do projeto glpichat
 
-Todo o sistema de agentes segue o princípio de que o plugin deve ser visualmente e funcionalmente **nativo** ao GLPI:
+Específicas do plugin que originou este sistema — adapte para o seu:
 
-- **UI e Dados**: Usar abas (Tabs) integradas em objetos core, menus nativos, não criar telas isoladas
-- **Permissões**: Direitos registrados na matriz nativa de perfis do GLPI
-- **CSS e Temas**: Usar classes nativas Tabler/Bootstrap, variáveis CSS do GLPI, proibido hardcodar cores
-- **Banco**: Tabelas com prefixo `glpi_plugin_{key}_*`, foreign keys lógicas para tabelas core
-
----
-
-## Regra Contra Overengineering
-
-O Maintainer rejeita soluções que:
-- Adicionem tabelas sem necessidade clara
-- Introduzam bibliotecas JS pesadas quando vanilla resolve
-- Criem abstrações genéricas para problemas específicos
-- Aumentem o tempo de carregamento do GLPI sem benefício mensurável
-- Fujam dos padrões estabelecidos do GLPI sem justificativa registrada
-
----
-
-## Version Detection Gate
-
-Todo subagent de backend, frontend ou database **deve obrigatoriamente**:
-1. Confirmar `GLPI_VERSION` com evidência de arquivo e linha
-2. Reportar APIs/hooks/helpers do GLPI core confirmados na versão detectada
-
-O Maintainer rejeita propostas que não cumpram este requisito.
-
----
-
-## Auditoria de Segurança Mandatória
-
-Toda nova feature, refatoração ou modificação de código deve passar por auditoria do `glpi-plugin-security` **antes** de ser integrada. O relatório é registrado em `references/security-audits.md` com status final: APROVADO, REJEITADO ou APROVADO COM RESSALVAS.
-
----
-
-## Arquivos de Referência
-
-Os arquivos em `references/` são o contexto vivo do projeto — atualizados por inspeção real do código, nunca por suposição:
-
-| Arquivo | Quando atualizar |
-|---|---|
-| `tasks.md` | Início de qualquer trabalho novo; ao concluir uma task |
-| `backlog.md` | Surgir algo que não entra na task atual |
-| `decisions.md` | Qualquer escolha de design, tecnologia ou padrão |
-| `plugin-context.md` | Após inspeção do código (não editar manualmente) |
-| `glpi-context.md` | Mudança de versão do GLPI ou do ambiente |
-| `inspection-notes.md` | Após inspeção — alertas, dívidas técnicas |
-| `security-audits.md` | Ao finalizar auditoria de segurança de qualquer feature |
-| `design-patterns-glpi.md` | Novo padrão confirmado por evidência no core |
-
----
-
-## Hierarquia de Fontes
-
-Ao analisar qualquer solicitação, a ordem de precedência é:
-
-1. **Código real do GLPI core** (`dev-glpi/glpi`)
-2. **Documentação oficial do GLPI** (`glpi-developer-documentation.readthedocs.io`)
-3. **Respostas e decisões explícitas do usuário**
-
-O código do plugin e os arquivos de `references/` são fontes complementares obrigatórias, mas não podem contradizer o core ou a documentação oficial.
+- Tabelas: `glpi_plugin_glpichat_*`
+- Direitos: `plugin_glpichat_*`
+- Rotas: atributo `#[Route(...)]` (padrão GLPI 11.x)
+- Assets: `public/js/` e `public/css/`
+- Paths guest: `SessionManager::registerPluginStatelessPath`
