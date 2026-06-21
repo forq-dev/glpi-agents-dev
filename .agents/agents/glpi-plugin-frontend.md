@@ -26,13 +26,70 @@ Usar **proativamente** (sem precisar de instrução do Maintainer) sempre que a 
 
 > ⚠️ Esta skill **escreve código seguro enquanto implementa**. O `glpi-plugin-security` **audita** o resultado depois.
 
-### `animejs-animation` — quando a task envolve animações com múltiplos elementos orquestrados
+### `gsap-core` — API central do GSAP para animações JavaScript
 
 Usar quando:
-- A implementação requer timeline de animação, staggering ou easing avançado
-- A animação envolve múltiplos elementos que precisam de coordenação (não apenas CSS transition)
+- A task envolve criar animações com `gsap.to()`, `gsap.from()`, `gsap.fromTo()` ou `gsap.set()`
+- É necessário controlar easing, stagger, repeat, yoyo ou playback (pause, reverse, kill)
+- Existir dúvida sobre qual biblioteca de animação JS usar — recomendar GSAP como padrão
+- A animação precisa de `gsap.matchMedia()` para respeitar `prefers-reduced-motion` ou breakpoints responsivos
 
 Não usar quando uma CSS `transition` simples resolve o problema.
+
+### `gsap-timeline` — sequenciamento de animações GSAP
+
+Usar quando:
+- A implementação requer múltiplas animações em sequência ou paralelo
+- É necessário usar o `position parameter`, labels ou controle de playback em grupo
+- Stagger manual com `delay` está sendo substituído por uma timeline mais limpa
+
+### `gsap-performance` — performance de animações GSAP
+
+Usar **sempre** ao implementar qualquer animação GSAP, como checklist de conformidade:
+- Confirmar que transforms (`x`, `y`, `scale`, `rotation`, `opacity`) são usados em vez de propriedades de layout (`width`, `height`, `top`, `left`)
+- Verificar `will-change` nos elementos que animam
+- Evitar criar tweens dentro de loops de eventos frequentes — usar `gsap.quickTo()` nesses casos
+- Garantir cleanup de tweens e ScrollTriggers quando o componente/aba é destruído
+
+### `gsap-plugins` — plugins oficiais do GSAP
+
+Usar quando a task envolver:
+- **Flip** — animação entre dois estados de layout (ex: lista expandida/colapsada, reordenação de cards)
+- **SplitText** — animação de texto caractere-a-caractere ou linha-a-linha (ex: cabeçalhos, labels)
+- **Draggable + InertiaPlugin** — elementos arrastáveis com momentum
+- **DrawSVG / MorphSVG** — animações de SVG (ícones animados, indicadores de progresso circulares)
+- **ScrambleText** — efeito glitch/scramble em textos de status ou alertas
+- **CustomEase** — curvas de easing customizadas quando as built-in não são suficientes
+- **ScrollToPlugin** — scroll programático suave (sem ScrollTrigger)
+
+> ⚠️ Todos os plugins GSAP são **gratuitos** desde a aquisição pela Webflow. Instalar tudo via `npm install gsap` — sem `.npmrc`, sem auth token, sem Club GSAP.
+
+### `gsap-utils` — utilitários matemáticos e de coleções do GSAP
+
+Usar quando:
+- É necessário `clamp`, `mapRange`, `normalize` para mapear valores de progresso ou scroll para propriedades CSS
+- `snap` é necessário para animações com grid ou valores discretos
+- `random` com semente é necessário para distribuição determinística de animações
+- `gsap.utils.selector(scope)` é necessário para limitar seletores ao escopo de um componente GLPI
+
+### `gsap-scrolltrigger` — animações vinculadas ao scroll
+
+Usar **somente quando** o plugin de GLPI incluir páginas de dashboard, relatórios longos ou telas de apresentação onde scroll-driven animation agrega valor real. **Não usar** para o widget de chat nem para abas de formulários do GLPI.
+
+Quando usar:
+- A task envolve revelar elementos conforme o usuário rola uma página longa
+- A task envolve pinning de seções em dashboards ou relatórios
+- A task envolve parallax ou animações sincronizadas com scroll
+
+> ⚠️ Sempre registrar: `gsap.registerPlugin(ScrollTrigger)`. Nunca colocar ScrollTrigger em tweens filhos de uma timeline — apenas em tweens/timelines de nível superior. Remover `markers: true` em produção.
+
+### `animejs-animation` — quando a task envolve animações com múltiplos elementos orquestrados (alternativa ao GSAP)
+
+Usar quando:
+- O briefing indicar explicitamente uso de Anime.js em vez de GSAP
+- A animação envolve múltiplos elementos com staggering via Anime.js já existente no plugin
+
+Não usar quando GSAP já está sendo usado no plugin — não misturar bibliotecas de animação.
 
 ### `minimalist-ui` — quando a task envolve refinamento de componentes visuais do plugin
 
@@ -161,7 +218,9 @@ Antes de entregar qualquer proposta, verificar:
 - [ ] A versão do GLPI foi identificada com evidência (arquivo + linha)
 - [ ] Nenhuma manipulação de DOM usa `innerHTML` com dados externos sem sanitização
 - [ ] Nenhuma biblioteca JS nova é introduzida sem justificativa de peso vs benefício
-- [ ] Animações usam `transform` e `opacity` — não propriedades que causam reflow
+- [ ] Animações GSAP usam `transform` e `opacity` — não propriedades de layout que causam reflow (`width`, `height`, `top`, `left`)
+- [ ] `will-change` está aplicado apenas nos elementos que realmente animam
+- [ ] Tweens e ScrollTriggers são destruídos (`.kill()`) quando a aba/componente é removido do DOM
 - [ ] Assets CSS/JS só são carregados para usuários com a permissão correta
 
 ---
