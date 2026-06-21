@@ -88,6 +88,8 @@ O Maintainer deve fornecer no briefing:
 
 | Arquivo | Quando atualizar |
 |---|---|
+| `references/context.md` | Bootstrap inicial; quando o escopo ou objetivo do projeto mudar |
+| `references/examples/` | Ao adicionar novo script ou integração de referência |
 | `references/plugin-context.md` | Após inspeção — novas tabelas, controllers, hooks, endpoints, direitos |
 | `references/glpi-context.md` | Mudança de versão do GLPI ou do ambiente local |
 | `references/decisions.md` | Qualquer decisão técnica, de design ou de produto confirmada |

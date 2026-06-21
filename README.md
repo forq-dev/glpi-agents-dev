@@ -1,6 +1,6 @@
 # glpi-agents-dev
 
-Repositório central de orquestração de IA para desenvolvimento de plugins GLPI.
+Sistema de orquestração de IA para desenvolvimento de plugins GLPI.
 
 Contém os agentes, subagents, skills e arquivos de referência que guiam todo o processo de desenvolvimento — do planejamento à auditoria de segurança.
 
@@ -22,10 +22,10 @@ Este repositório resolve isso com um sistema em três camadas:
 
 ```
 .agents/
-├── MAINTAINER.md          ← ponto de entrada obrigatório — leia sempre primeiro
-├── index.md               ← mapa do sistema
+├── MAINTAINER.md               ← ponto de entrada obrigatório — leia sempre primeiro
+├── index.md                    ← mapa do sistema
 │
-├── agents/                ← subagents especializados
+├── agents/                     ← subagents especializados
 │   ├── glpi-plugin-backend.md      → controllers PHP, hooks, migrations, direitos
 │   ├── glpi-plugin-frontend.md     → JavaScript, CSS, HTML inline, polling
 │   ├── glpi-plugin-database.md     → schema, índices, queries, migrations
@@ -37,7 +37,14 @@ Este repositório resolve isso com um sistema em três camadas:
 │   ├── glpi-plugin-ux.md           → fluxos de interação, feedback visual
 │   └── glpi-plugin-performance.md  → queries, polling, assets, N+1
 │
-├── references/            ← contexto vivo do projeto (específico por plugin)
+├── references/                 ← contexto vivo do projeto (específico por plugin)
+│   ├── context.md              → identidade: objetivo, escopo, metas (preenchido via bootstrap)
+│   ├── examples/               → scripts e integrações existentes como referência
+│   │   ├── README.md
+│   │   ├── _template/          → template para novos exemplos
+│   │   └── nome-da-integracao/ → cada integração em sua própria pasta
+│   │       ├── README.md       → fluxo, APIs, mapeamento para GLPI
+│   │       └── src/            → código-fonte original (Python, Shell, etc.)
 │   ├── tasks.md                → o que está em execução agora
 │   ├── backlog.md              → o que está planejado para depois
 │   ├── decisions.md            → decisões técnicas já tomadas
@@ -47,7 +54,7 @@ Este repositório resolve isso com um sistema em três camadas:
 │   ├── design-patterns-glpi.md → padrões de código e UI validados
 │   └── security-audits.md      → histórico de auditorias de segurança
 │
-└── skills/                ← capacidades reutilizáveis (read-only — nunca modificar)
+└── skills/                     ← capacidades reutilizáveis (read-only — nunca modificar)
     │
     ├── # GLPI
     ├── glpi-plugin-dev/        → padrões de desenvolvimento GLPI (obrigatória para backend)
@@ -92,11 +99,40 @@ Este repositório resolve isso com um sistema em três camadas:
 
 ---
 
+## Primeiros passos após clonar
+
+Não é necessário preencher nada manualmente antes de começar.
+
+Ao iniciar a primeira sessão, o Maintainer detecta que `references/context.md` está vazio e executa automaticamente o **Protocolo de Bootstrap de Contexto**:
+
+1. Inspeciona o que já existe no repositório (código, exemplos, README)
+2. Conduz uma entrevista estruturada com `grill-me` — uma pergunta por vez, cobrindo objetivo, público, escopo, non-goals, restrições técnicas, fluxo principal, dados externos e metas
+3. Aprofunda as decisões de produto com `brainstorming` — trade-offs de arquitetura, mapeamento para objetos GLPI, definição do que entra na v1
+4. Grava `references/context.md` com tudo que foi alinhado e pede confirmação antes de avançar
+5. Registra as decisões tomadas em `references/decisions.md`
+
+Só depois do contexto confirmado o desenvolvimento começa.
+
+### Se você já tem um script ou integração existente
+
+Antes de iniciar a sessão, coloque o código em `.agents/references/examples/`:
+
+```
+.agents/references/examples/nome-da-integracao/
+├── README.md   ← preencha com o template em _template/
+└── src/
+    └── script.py
+```
+
+O Maintainer vai ler esse exemplo para entender a lógica de negócio antes de propor o plugin — o código funciona como fonte de verdade do processo que deve ser replicado em PHP/GLPI.
+
+---
+
 ## Como usar num projeto
 
 ### Opção 1 — Git Subtree (recomendado)
 
-O subtree copia o conteúdo deste repositório para dentro do seu projeto como arquivos normais. Sem dependências externas, sem comandos extras no clone — funciona para qualquer pessoa que clonar o projeto.
+O subtree copia o conteúdo deste repositório para dentro do seu projeto como arquivos normais. Sem dependências externas, sem comandos extras no clone.
 
 **Primeira vez — importar para dentro do projeto:**
 ```bash
@@ -128,42 +164,11 @@ git subtree push \
 
 O `--squash` condensa toda a história deste repositório em um único commit no projeto — mantém o histórico do plugin limpo.
 
-#### O que acontece com o `references/`
-
-Os arquivos em `references/` são específicos por projeto — o `tasks.md` do glpichat não é o mesmo de outro plugin. Como eles começam vazios (só templates), o comportamento é seguro:
-
-- Na primeira importação: chegam vazios, você os preenche localmente
-- Nos pulls seguintes: se você modificou localmente e o template original não mudou, o git não gera conflito
-- Se o template mudar (coisa rara): você resolve um merge pontual só nesses arquivos
+> **Nota sobre `references/`:** os arquivos `context.md`, `examples/` e os demais em `references/` são específicos por projeto e começam vazios (só templates). O git não vai gerar conflito nos pulls subsequentes a não ser que o template em si mude — o que é raro. Se mudar, você resolve um merge pontual nesses arquivos.
 
 ### Opção 2 — Cópia manual
 
-Se não quiser usar subtree, copie a pasta `.agents/` para dentro do projeto. Não tem sincronização automática — você propaga atualizações na mão.
-
----
-
-## Compatibilidade por plataforma de IA
-
-Diferentes ferramentas leem o ponto de entrada em lugares diferentes:
-
-| Ferramenta | Arquivo lido | Como configurar |
-|---|---|---|
-| Claude Code | `CLAUDE.md` na raiz | Criar symlink: `ln -s AGENTS.md CLAUDE.md` |
-| Cursor / Windsurf | `AGENTS.md` na raiz | Já existe neste repositório |
-| Kiro | `.kiro/steering/*.md` | Copiar ou linkar `MAINTAINER.md` para `.kiro/steering/` |
-| Genérico | `.agents/MAINTAINER.md` | Apontar o agente diretamente para este arquivo |
-
-Neste repositório, `CLAUDE.md` já é um symlink para `.agents/MAINTAINER.md`.
-
-Para criar os links num projeto que usa subtree:
-```bash
-# Claude Code
-ln -s AGENTS.md CLAUDE.md
-
-# Kiro
-mkdir -p .kiro/steering
-ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
-```
+Copie a pasta `.agents/` para dentro do projeto. Sem sincronização automática — você propaga atualizações na mão.
 
 ---
 
@@ -171,16 +176,34 @@ ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
 
 ### Fluxo de uma sessão
 
+**Primeira sessão (contexto vazio):**
 ```
 1. Agente carrega MAINTAINER.md
          │
-2. Maintainer lê references/* (tasks, decisions, plugin-context, etc.)
+2. Maintainer detecta references/context.md vazio
          │
-3. Maintainer usa grill-me → alinha escopo com o usuário (1 pergunta por vez)
+3. Bootstrap: grill-me → coleta objetivo, público, escopo, fluxo, restrições, metas
+         │
+4. Bootstrap: brainstorming → aprofunda trade-offs e decisões de produto
+         │
+5. Maintainer grava references/context.md e aguarda confirmação
+         │
+6. glpi-plugin-context registra decisões em references/decisions.md
+         │
+         └── desenvolvimento começa apenas após confirmação
+```
+
+**Sessões seguintes (contexto preenchido):**
+```
+1. Agente carrega MAINTAINER.md
+         │
+2. Maintainer lê references/context.md + references/* (tasks, decisions, plugin-context…)
+         │
+3. Maintainer usa grill-me → alinha escopo da task com o usuário
          │
 4. Maintainer usa brainstorming → explora trade-offs se necessário
          │
-5. Maintainer gera briefings formais e delega para subagents
+5. Maintainer gera briefings e delega para subagents
          │
          ├── glpi-plugin-backend    (lógica PHP)
          ├── glpi-plugin-frontend   (UI / JavaScript)
@@ -202,11 +225,13 @@ ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
 
 **O Maintainer não escreve código.** Ele planeja, delega, revisa e valida. Implementação sempre vai para um subagent.
 
-**Auditoria de segurança é mandatória.** Toda feature nova ou refatoração passa pelo `glpi-plugin-security` antes de ser integrada. O resultado vai para `references/security-audits.md`.
+**Bootstrap obrigatório.** Sem `references/context.md` preenchido e confirmado, nenhuma task de desenvolvimento começa.
+
+**Auditoria de segurança é mandatória.** Toda feature nova ou refatoração passa pelo `glpi-plugin-security` antes de ser integrada.
 
 **Skills são read-only.** Nenhum agente cria, modifica ou exclui arquivos em `.agents/skills/`.
 
-**Contexto vem dos arquivos, não da memória.** O Maintainer lê `references/` a cada sessão — não assume que lembra do que foi decidido antes.
+**Contexto vem dos arquivos, não da memória.** O Maintainer lê `references/context.md` e `references/` a cada sessão.
 
 **Version Detection Gate.** Todo subagent de backend, frontend ou banco deve confirmar `GLPI_VERSION` com evidência de arquivo e linha antes de propor qualquer implementação.
 
@@ -239,12 +264,22 @@ ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
 
 ---
 
-## Convenções do projeto glpichat
+## Compatibilidade por plataforma de IA
 
-Específicas do plugin que originou este sistema — adapte para o seu:
+| Ferramenta | Arquivo lido | Como configurar |
+|---|---|---|
+| Claude Code | `CLAUDE.md` na raiz | Criar symlink: `ln -s AGENTS.md CLAUDE.md` |
+| Cursor / Windsurf | `AGENTS.md` na raiz | Já existe neste repositório |
+| Kiro | `.kiro/steering/*.md` | Linkar `MAINTAINER.md` para `.kiro/steering/` |
+| Genérico | `.agents/MAINTAINER.md` | Apontar o agente diretamente para este arquivo |
 
-- Tabelas: `glpi_plugin_glpichat_*`
-- Direitos: `plugin_glpichat_*`
-- Rotas: atributo `#[Route(...)]` (padrão GLPI 11.x)
-- Assets: `public/js/` e `public/css/`
-- Paths guest: `SessionManager::registerPluginStatelessPath`
+Neste repositório, `CLAUDE.md` já é um symlink para `.agents/MAINTAINER.md`.
+
+```bash
+# Claude Code
+ln -s AGENTS.md CLAUDE.md
+
+# Kiro
+mkdir -p .kiro/steering
+ln -s ../../.agents/MAINTAINER.md .kiro/steering/maintainer.md
+```

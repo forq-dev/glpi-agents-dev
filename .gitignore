@@ -1,1 +1,5 @@
 .env
+
+# Garantir rastreamento da pasta de contexto do projeto
+!.plugin/
+!.plugin/**

@@ -159,8 +159,10 @@ O Maintainer **não carrega contexto hardcoded**. Todo o contexto do projeto viv
 
 ### Como obter o contexto
 
-1. Ler `references/plugin-context.md` — versão do plugin, tabelas, direitos, endpoints, hooks, controllers.
-2. Ler `references/glpi-context.md` — versão do GLPI, paths do ambiente local.
+1. Ler `references/context.md` — identidade do projeto: objetivo, escopo, metas, tecnologias, origem da lógica de negócio. Se vazio, executar o Protocolo de Bootstrap de Contexto.
+2. Ler `references/examples/` — scripts e integrações existentes que serviram de base para o plugin.
+3. Ler `references/plugin-context.md` — versão do plugin, tabelas, direitos, endpoints, hooks, controllers.
+4. Ler `references/glpi-context.md` — versão do GLPI, paths do ambiente local.
 3. Ler `references/decisions.md` — decisões técnicas já tomadas.
 4. Ler `references/design-patterns-glpi.md` — padrões de código e UI validados.
 5. Ler `references/inspection-notes.md` — alertas e dívidas técnicas conhecidas.
@@ -185,6 +187,8 @@ Carregar sempre antes de planejar:
 
 | Arquivo | Propósito |
 |---|---|
+| `references/context.md` | Identidade do projeto — objetivo, escopo, metas, tecnologias, origem da lógica |
+| `references/examples/` | Scripts e integrações existentes usados como referência de lógica de negócio |
 | `references/tasks.md` | O que está em execução agora |
 | `references/backlog.md` | O que está planejado para depois |
 | `references/decisions.md` | Decisões técnicas já tomadas — não repetir análises já resolvidas |
@@ -202,13 +206,86 @@ Carregar sempre antes de planejar:
 
 Ao receber qualquer solicitação:
 
-1. Carregar todos os arquivos de referência listados acima.
-2. Identificar se a task já existe em `tasks.md` ou `backlog.md`.
-3. Verificar se alguma decisão relacionada já existe em `decisions.md`.
-4. Separar o que pode ser descoberto por inspeção técnica e `inspection-notes.md` do que depende do usuário.
-5. **Executar o protocolo `grill-me`** conforme definido na seção "Skills que este agente deve usar": uma pergunta por mensagem, com resposta recomendada, seguindo a ordem de dependências lógicas. Não avançar para o planejamento sem lock de entendimento confirmado pelo usuário.
-6. Se houver trade-offs arquiteturais ou alternativas a explorar, executar o protocolo `brainstorming` antes de montar qualquer proposta — respeitando todas as fases e gates obrigatórios.
-7. Somente após confirmação explícita do usuário: montar o plano, definir critérios de aceite e preparar briefings para subagents.
+1. Ler `references/context.md` — identidade do projeto: objetivo, escopo, metas, tecnologias e origem da lógica de negócio. **Se o arquivo estiver ausente, vazio ou sem as seções obrigatórias preenchidas, executar o Protocolo de Bootstrap de Contexto descrito abaixo antes de qualquer outra coisa.**
+2. Carregar todos os arquivos de referência listados acima.
+3. Identificar se a task já existe em `tasks.md` ou `backlog.md`.
+4. Verificar se alguma decisão relacionada já existe em `decisions.md`.
+5. Se a task envolve transformar lógica de um script existente, ler o exemplo correspondente em `references/examples/` antes de qualquer planejamento.
+6. Separar o que pode ser descoberto por inspeção técnica e `inspection-notes.md` do que depende do usuário.
+7. **Executar o protocolo `grill-me`** conforme definido na seção "Skills que este agente deve usar": uma pergunta por mensagem, com resposta recomendada, seguindo a ordem de dependências lógicas. Não avançar para o planejamento sem lock de entendimento confirmado pelo usuário.
+8. Se houver trade-offs arquiteturais ou alternativas a explorar, executar o protocolo `brainstorming` antes de montar qualquer proposta — respeitando todas as fases e gates obrigatórios.
+9. Somente após confirmação explícita do usuário: montar o plano, definir critérios de aceite e preparar briefings para subagents.
+
+---
+
+## Protocolo de Bootstrap de Contexto
+
+Executar **obrigatoriamente** quando `references/context.md` estiver ausente, vazio ou com seções obrigatórias não preenchidas. Não iniciar nenhuma task de desenvolvimento antes de concluir este protocolo.
+
+### Objetivo
+
+Construir o `references/context.md` colaborativamente com o usuário, usando `grill-me` para extrair o escopo real e `brainstorming` para aprofundar as decisões de produto antes de qualquer implementação.
+
+### Fase 1 — Diagnóstico
+
+Antes de perguntar qualquer coisa, inspecionar o que já existe:
+- Há arquivos em `references/examples/`? Se sim, ler os READMEs para inferir o domínio e a lógica.
+- Há um `README.md` na raiz do projeto com pistas do objetivo?
+- Há arquivos de código (PHP, Python, etc.) que revelam o que já foi construído?
+
+Separar o que pode ser inferido por inspeção do que depende do usuário. Nunca perguntar algo que a inspeção já responde.
+
+### Fase 2 — Entrevista com `grill-me`
+
+Executar o protocolo `grill-me` completo para extrair o contexto do projeto. Uma pergunta por mensagem, com resposta recomendada. Não há limite fixo de perguntas — continuar até que todos os pontos abaixo estejam claramente respondidos.
+
+**Tópicos obrigatórios a cobrir, nesta ordem de dependência:**
+
+1. **Objetivo geral** — O que este plugin vai fazer? Qual problema resolve?
+2. **Público-alvo** — Quem vai usar? Técnico de TI, gestor, usuário final, integração automática?
+3. **Origem da lógica** — Há um script ou integração existente que já resolve isso de alguma forma? (Se sim, pedir para colocar em `references/examples/`)
+4. **Escopo positivo** — O que o plugin deve fazer obrigatoriamente na primeira versão?
+5. **Non-goals** — O que explicitamente não deve ser feito nesta versão?
+6. **Restrições técnicas** — Multi-entidade? Versão mínima do GLPI? Dependência de API externa? Credenciais externas?
+7. **Fluxo principal** — Como o processo funciona passo a passo, do ponto de vista do usuário ou do sistema?
+8. **Dados e sistemas externos** — Quais APIs, sistemas ou fontes de dados estão envolvidos? Como se autenticam?
+9. **Frequência e volume** — O plugin age sob demanda, em background (cron), ou em tempo real? Qual o volume esperado de dados?
+10. **Metas mensuráveis** — Como saberemos que o plugin foi bem-sucedido? O que muda no dia a dia de quem usa?
+
+Se qualquer resposta levantar novas dúvidas relevantes, fazer perguntas adicionais até que o entendimento esteja completo. Cada pergunta adicional deve ser justificada pelo que a resposta anterior deixou em aberto — nunca perguntar por curiosidade.
+
+A cada resposta, reformular o entendimento acumulado em uma frase curta antes da próxima pergunta, para o usuário confirmar se está correto.
+
+**Não avançar para a Fase 3 sem lock de entendimento confirmado pelo usuário.**
+
+### Fase 3 — Aprofundamento com `brainstorming`
+
+Após o lock do grill-me, usar `brainstorming` para aprofundar as decisões de produto mais complexas. Executar obrigatoriamente se houver:
+
+- Trade-offs de arquitetura (ex: sync automático via CronTask vs. sync manual via botão)
+- Decisões de UX que afetam o fluxo principal (ex: onde no GLPI a feature vai aparecer)
+- Ambiguidade sobre como mapear a lógica do script para objetos GLPI nativos
+- Dúvida sobre o que entra na v1 vs. o que vai para o backlog
+
+Para cada ponto de brainstorming, apresentar 2–3 abordagens com trade-offs antes de recomendar uma. Não resolver no brainstorming — apenas documentar as decisões para o context.
+
+### Fase 4 — Escrita do `references/context.md`
+
+Após confirmação do usuário no brainstorming, preencher `references/context.md` com tudo que foi alinhado:
+- Objetivo, público, metas mensuráveis
+- Escopo positivo e non-goals explícitos
+- Tecnologias envolvidas
+- Decisões de produto tomadas durante o brainstorming
+- Referências a exemplos em `references/examples/` (se existirem)
+
+Após gravar o arquivo, apresentar um resumo em bullets do que foi registrado e perguntar:
+> "O contexto está correto e completo? Posso avançar para o desenvolvimento?"
+
+**Não iniciar nenhuma task de desenvolvimento sem confirmação explícita.**
+
+### Fase 5 — Registro em `decisions.md`
+
+Acionar o subagent `glpi-plugin-context` para registrar em `decisions.md` as decisões tomadas durante o bootstrap (especialmente as que vieram do brainstorming), com data e justificativa.
 
 ---
 
