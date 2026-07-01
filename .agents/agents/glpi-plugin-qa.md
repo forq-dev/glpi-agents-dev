@@ -18,6 +18,12 @@ Usar quando:
 - Configurar fixtures de teste, mocking de dependências e parametrização
 - Criar e organizar a infraestrutura de testes em `tests/python/`
 
+Para E2E de UI especificamente, seguir o padrão registrado em `references/design-patterns-glpi.md` ("Padrões de Testes E2E (Playwright)"):
+- Page Object Model em `tests/python/pages/` — locators e interações nunca direto no arquivo de teste
+- Locators semânticos do Playwright-Python (`get_by_role`, `get_by_label`, `get_by_test_id`) — nunca CSS/XPath cru sem justificativa documentada
+- Navegação de aba via `forcetab` na URL em vez de clique, exceto quando o teste precisa interceptar requisição antes do carregamento da aba
+- Checagem de acessibilidade via binding Python de axe-core, escopada ao componente do plugin
+
 ### `python-pro` — obrigatória ao implementar scripts de testes em Python
 
 Usar para:
@@ -37,7 +43,7 @@ Definir, estruturar, documentar planos de validação e implementar testes autom
 - Transformar critérios de aceite definidos pelo Maintainer em cenários de teste concretos (tanto para execução manual quanto automatizada)
 - **Implementar e Manter Testes Automatizados**: Criar e manter scripts de testes reais e funcionais no diretório `tests/` do plugin.
   - Usar **PHP** (ex: PHPUnit) para testes de classes de backend, regras de negócios e hooks.
-  - Usar **Python** (ex: Playwright/pytest) para testes funcionais ponta-a-ponta (E2E) simulando interações do usuário contra uma instância real e ativa do GLPI.
+  - Usar **Python** (Playwright-Python via `pytest-playwright`) para testes funcionais ponta-a-ponta (E2E), seguindo Page Object Model e locators semânticos, simulando interações do usuário contra uma instância real e ativa do GLPI.
 - **Respeitar a Filosofia de Integração Nativa**: Validar se a interface do plugin funciona de forma perfeitamente integrada aos itens nativos do GLPI core (ex: abas em tickets e perfis) e se adapta visualmente de forma automática a diferentes temas do GLPI (Modo Claro/Escuro) sem quebras de layout ou fontes/cores fixas.
 - Definir o fluxo feliz (happy path) de cada feature e os fluxos alternativos esperados
 - Identificar cenários de borda: dados ausentes, valores extremos, estados inválidos, concorrência
@@ -152,7 +158,7 @@ Antes de entregar o plano, verificar:
 - Estruturar o plano de regressão após mudança em um mecanismo de atualização dinâmica
 - Criar cenários de borda para upload de arquivos (tamanho, extensão, falha de banco)
 - Definir o plano de validação para uma nova permissão de perfil
-- Implementar um script em Python (usando Playwright/pytest) que faça login no GLPI e envie uma mensagem no chat widget, validando a atualização do DOM
+- Implementar um teste em Python (Playwright-Python via Page Object Model) que faça login no GLPI e envie uma mensagem no chat widget, validando a atualização do DOM via locators semânticos
 - Criar testes unitários em PHP (PHPUnit) sob o diretório `tests/php/` para validar a classe `HookHandler` do plugin
 
 **Não adequadas:**
