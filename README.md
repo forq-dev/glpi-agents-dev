@@ -8,6 +8,7 @@ Ele entrega um conjunto consistente de:
 - `system-prompts/AGENTS.md` para gerar os arquivos de entrada do projeto consumidor
 - `mcp.json` e `.mcp.json` com os MCPs usados no desenvolvimento do framework
 - `glpi-agents-sync`, o CLI que instala e atualiza o framework na raiz de um plugin
+- `.agents-sync.runtime.json`, a configuração local de ambiente para `gh`, Playwright e Chrome
 
 ## Onde instalar
 
@@ -67,6 +68,7 @@ O bootstrap instala e mantém estes arquivos na raiz do plugin:
 - `mcp.json`
 - `.mcp.json`
 - `.agents-sync.json`
+- `.agents-sync.runtime.json`
 
 O bootstrap não cria estrutura de plugin GLPI. Ele só instala o framework e deixa o diretório pronto para você começar a desenvolver.
 
@@ -88,7 +90,8 @@ Se você estiver começando do zero em uma pasta vazia, o fluxo continua o mesmo
 | `bootstrap` | Instala o framework pela primeira vez na raiz do plugin |
 | `status` | Mostra o que mudou na origem sem aplicar nada |
 | `sync` | Aplica as mudanças confirmadas do framework |
-| `doctor` | Valida manifesto local, origem e estado de atualização |
+| `doctor` | Valida manifesto local, origem e ambiente de runtime |
+| `setup` | Gera a config local e prepara Chromium quando solicitado |
 
 ## Exemplo com `glpichat`
 
@@ -111,6 +114,30 @@ Se preferir, rode o wrapper diretamente a partir da raiz deste repositório:
 ```
 
 Se você não informar `--ref`, o bootstrap usa a branch padrão do repositório-fonte. Isso evita prender a instalação em `main` quando o remoto usa outra branch, como `master`.
+
+## Ambiente e validação
+
+O CLI verifica o ambiente antes de executar os comandos principais:
+
+- `gh` precisa estar instalado e autenticado
+- `node` e `npx` precisam estar disponíveis
+- `@playwright/mcp` e `chrome-devtools-mcp` precisam responder ao `--help`
+- Chrome/Chromium precisa estar disponível localmente ou no cache do Playwright
+
+Para regenerar a configuração local e, se quiser, baixar Chromium via Playwright:
+
+```bash
+glpi-agents-sync setup --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat
+glpi-agents-sync setup --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat --install-playwright-browsers
+```
+
+Se quiser exportar variáveis para a sessão atual do shell:
+
+```bash
+eval "$(glpi-agents-sync setup --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat --print-env)"
+```
+
+O arquivo `.agents-sync.runtime.json` controla esse comportamento e pode ser ajustado manualmente se você quiser desativar partes do ambiente ou apontar para outro executável do Chrome.
 
 ## MCPs do framework
 

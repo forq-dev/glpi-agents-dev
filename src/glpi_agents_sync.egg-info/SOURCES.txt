@@ -5,6 +5,7 @@ src/glpi_agents_sync/__main__.py
 src/glpi_agents_sync/cli.py
 src/glpi_agents_sync/config.py
 src/glpi_agents_sync/models.py
+src/glpi_agents_sync/runtime.py
 src/glpi_agents_sync/source.py
 src/glpi_agents_sync/sync.py
 src/glpi_agents_sync.egg-info/PKG-INFO

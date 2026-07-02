@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -12,6 +13,18 @@ from glpi_agents_sync.config import (
     write_manifest,
 )
 from glpi_agents_sync.models import SyncEntry, SyncManifest
+from glpi_agents_sync.runtime import (
+    RuntimeConfigError,
+    RuntimeProbeError,
+    RuntimeReport,
+    create_runtime_config,
+    ensure_runtime_ready,
+    load_runtime_config,
+    probe_runtime,
+    render_runtime_report,
+    runtime_config_path_for,
+    write_runtime_config,
+)
 from glpi_agents_sync.source import (
     DEFAULT_SOURCE_REPOSITORY,
     SourceFetchError,
@@ -32,7 +45,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return run_command(args)
-    except (ConfigError, SourceFetchError, RuntimeError) as exc:
+    except (ConfigError, RuntimeConfigError, RuntimeProbeError, SourceFetchError, RuntimeError) as exc:
         print(f"[ERRO] {exc}")
         return 1
 
@@ -50,6 +63,23 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers.add_parser("status", help="Mostra o que precisa ser atualizado sem aplicar")
     )
     add_common_options(subparsers.add_parser("doctor", help="Valida configuracao e origem"))
+    setup_parser = subparsers.add_parser("setup", help="Prepara gh, Playwright e Chrome localmente")
+    setup_parser.add_argument(
+        "--root",
+        type=Path,
+        default=None,
+        help="Raiz do plugin. Padrao: diretorio atual.",
+    )
+    setup_parser.add_argument(
+        "--install-playwright-browsers",
+        action="store_true",
+        help="Instala Chromium via Playwright antes de validar o ambiente.",
+    )
+    setup_parser.add_argument(
+        "--print-env",
+        action="store_true",
+        help="Mostra exports de shell para o ambiente atual.",
+    )
     return parser
 
 
@@ -90,12 +120,15 @@ def run_command(args: argparse.Namespace) -> int:
         return run_sync(plugin_root, args.source, args.ref, args.yes, dry_run=True)
     if args.command == "doctor":
         return run_doctor(plugin_root, args.source, args.ref)
+    if args.command == "setup":
+        return run_setup(plugin_root, args.install_playwright_browsers, args.print_env)
 
     raise RuntimeError(f"Comando desconhecido: {args.command}")
 
 
 def run_bootstrap(project_root: Path, source_repo: str | None, source_ref: str | None) -> int:
     project_root.mkdir(parents=True, exist_ok=True)
+    ensure_runtime_ready(project_root)
     effective_source_repo = source_repo if source_repo is not None else DEFAULT_SOURCE_REPOSITORY
     source_tree = clone_source_tree(effective_source_repo, source_ref)
     try:
@@ -106,6 +139,8 @@ def run_bootstrap(project_root: Path, source_repo: str | None, source_ref: str |
         result = apply_sync_plan(project_root, source_tree, plan, confirm_removals=True)
         final_manifest = stamp_manifest(result.manifest)
         write_manifest(project_root, final_manifest)
+        runtime_config = create_runtime_config(False)
+        write_runtime_config(project_root, runtime_config)
         print_summary("Bootstrap concluido", result.actions, final_manifest)
         return 0
     finally:
@@ -119,6 +154,7 @@ def run_sync(
     confirm_removals: bool,
     dry_run: bool,
 ) -> int:
+    ensure_runtime_ready(project_root)
     manifest = load_manifest(project_root)
     effective_source_repo = source_repo if source_repo is not None else manifest.source_repo
     effective_source_ref = source_ref if source_ref is not None else manifest.source_ref
@@ -152,6 +188,7 @@ def run_sync(
 
 
 def run_doctor(project_root: Path, source_repo: str | None, source_ref: str | None) -> int:
+    print_runtime_status(project_root)
     manifest = load_manifest(project_root)
     effective_source_repo = source_repo if source_repo is not None else manifest.source_repo
     effective_source_ref = source_ref if source_ref is not None else manifest.source_ref
@@ -168,6 +205,22 @@ def run_doctor(project_root: Path, source_repo: str | None, source_ref: str | No
         return 0
     finally:
         cleanup_source_tree(source_tree)
+
+
+def run_setup(project_root: Path, install_playwright_browsers: bool, print_env: bool) -> int:
+    project_root.mkdir(parents=True, exist_ok=True)
+    runtime_config = create_runtime_config(install_playwright_browsers)
+    write_runtime_config(project_root, runtime_config)
+    report = probe_runtime(runtime_config)
+    print_runtime_summary(report)
+    if print_env:
+        export_script = build_export_script(report)
+        if export_script:
+            print(export_script)
+    print(f"Configuração de runtime carregada em: {runtime_config_path_for(project_root)}")
+    if report.has_errors():
+        raise RuntimeProbeError(render_runtime_report(report))
+    return 0
 
 
 def build_manifest(source_repo: str, source_ref: str, entries: tuple[SyncEntry, ...]) -> SyncManifest:
@@ -232,3 +285,44 @@ def resolve_plugin_root(root: Path | None) -> Path:
     if root is None:
         return Path.cwd()
     return root.resolve()
+
+
+def print_runtime_status(project_root: Path) -> None:
+    runtime_config = load_runtime_config(project_root)
+    report = probe_runtime(runtime_config)
+    print_runtime_summary(report)
+
+
+def print_runtime_summary(report: RuntimeReport) -> None:
+    print("[INFO] Ambiente local")
+    print(f"[INFO] github_enabled={report.config.github_enabled}")
+    print(f"[INFO] playwright_enabled={report.config.playwright_enabled}")
+    print(f"[INFO] chrome_devtools_enabled={report.config.chrome_devtools_enabled}")
+    print(f"[INFO] install_playwright_browsers={report.config.install_playwright_browsers}")
+    print(f"[INFO] chrome_channel={report.config.chrome_channel}")
+    print(
+        "[INFO] chrome_executable_path="
+        f"{report.config.chrome_executable_path if report.config.chrome_executable_path is not None else 'ausente'}"
+    )
+    if not report.issues:
+        print("[OK] Ambiente local: nenhum problema")
+        return
+
+    print(f"[AVISO] {len(report.issues)} problema(s) de ambiente")
+    for issue in report.issues:
+        print(f"- {issue.tool} :: {issue.message} :: {issue.detail}")
+
+
+def build_export_script(report: RuntimeReport) -> str:
+    lines: list[str] = []
+    if os.getenv("GITHUB_TOKEN") is None and os.getenv("GH_TOKEN") is None:
+        lines.append('export GITHUB_TOKEN="$(gh auth token)"')
+        lines.append('export GH_TOKEN="$GITHUB_TOKEN"')
+    if report.config.chrome_executable_path is not None:
+        lines.append(
+            f'export PLAYWRIGHT_CHROME_EXECUTABLE_PATH="{report.config.chrome_executable_path}"'
+        )
+        lines.append(
+            f'export CHROME_DEVTOOLS_EXECUTABLE_PATH="{report.config.chrome_executable_path}"'
+        )
+    return "\n".join(lines)

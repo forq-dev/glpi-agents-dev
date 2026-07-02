@@ -63,6 +63,11 @@ if [[ ! -f "${consumer_root}/.agents/example.txt" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${consumer_root}/.agents-sync.runtime.json" ]]; then
+  echo "[FAIL] bootstrap nao criou a configuracao de runtime" >&2
+  exit 1
+fi
+
 if [[ ! -L "${consumer_root}/CLAUDE.md" ]]; then
   echo "[FAIL] bootstrap nao criou o symlink CLAUDE.md" >&2
   exit 1
@@ -70,6 +75,25 @@ fi
 
 if ! grep -q '"local-only"' "${consumer_root}/mcp.json"; then
   echo "[FAIL] bootstrap removeu MCP local" >&2
+  exit 1
+fi
+
+doctor_output="$(PYTHONPATH="${repo_root}/src" "${repo_root}/bin/glpi-agents-sync" doctor \
+  --root "${consumer_root}" 2>&1)"
+
+if ! grep -q '\[OK\] Ambiente local: nenhum problema' <<<"${doctor_output}"; then
+  echo "[FAIL] doctor deveria validar o ambiente local" >&2
+  echo "${doctor_output}" >&2
+  exit 1
+fi
+
+setup_output="$(PYTHONPATH="${repo_root}/src" "${repo_root}/bin/glpi-agents-sync" setup \
+  --root "${consumer_root}" \
+  --print-env 2>&1)"
+
+if ! grep -q 'PLAYWRIGHT_CHROME_EXECUTABLE_PATH' <<<"${setup_output}"; then
+  echo "[FAIL] setup nao expôs o executavel do Chrome" >&2
+  echo "${setup_output}" >&2
   exit 1
 fi
 
