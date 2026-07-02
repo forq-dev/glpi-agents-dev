@@ -1,0 +1,2 @@
+[console_scripts]
+glpi-agents-sync = glpi_agents_sync.cli:main

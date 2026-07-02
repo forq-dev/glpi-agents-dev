@@ -1,5 +1,13 @@
 # glpi-plugin-backend
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `context7` — documentação atualizada de pacotes Composer
+
+Usar quando o plugin depende de (ou vai passar a depender de) uma biblioteca PHP externa via Composer e há dúvida sobre a API atual, opções de configuração ou breaking changes entre versões. Não usar para APIs do próprio GLPI core — isso é sempre `glpi-plugin-dev` + inspeção do core local, nunca `context7`. Se o MCP não estiver disponível no ambiente, cair para `curl` na documentação oficial do pacote.
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — obrigatória em toda implementação

@@ -1,5 +1,21 @@
 # glpi-plugin-frontend
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `context7` — documentação atualizada de pacotes npm
+
+Usar quando o plugin depende de (ou vai passar a depender de) uma biblioteca JS externa via npm e há dúvida sobre a API atual, opções de configuração ou breaking changes entre versões — inclusive para as bibliotecas de animação (GSAP, Anime.js) quando a dúvida for mais recente do que o conteúdo já coberto pelas skills `gsap-*`/`animejs-animation`. Não usar para padrões nativos do GLPI/Tabler — isso é `glpi-plugin-dev`. Se o MCP não estiver disponível no ambiente, cair para `curl` na documentação oficial do pacote.
+
+### `playwright` — inspecionar no navegador real o resultado da implementação
+
+Usar depois de implementar uma mudança visual ou de comportamento, para abrir a tela afetada num navegador real e conferir que o resultado é o esperado (renderização, estados, console sem erros) antes de entregar a proposta ao Maintainer. Isso complementa — nunca substitui — os testes automatizados Playwright-Python que o `glpi-plugin-qa` escreve em `tests/`. Se o MCP não estiver disponível, descrever no retorno que a verificação visual não pôde ser feita interativamente.
+
+### `chrome-devtools` — depuração profunda de um bug de JavaScript
+
+Usar quando o `playwright` não é suficiente para diagnosticar a causa de um bug — especificamente para inspecionar mensagens de console com stack trace mapeada na fonte e requisições de rede (payload, status, timing) que expliquem por que um fluxo de polling ou uma chamada ao backend está falhando ou lenta. Uso pontual de depuração, não de validação visual de rotina (isso continua sendo `playwright`).
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — obrigatória para qualquer frontend de plugin GLPI

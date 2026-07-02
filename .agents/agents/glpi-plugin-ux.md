@@ -1,5 +1,13 @@
 # glpi-plugin-ux
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `playwright` — validar o fluxo real no navegador
+
+Usar para navegar pelo fluxo de interação proposto ou implementado num navegador real, conferindo estados de carregamento, erro, foco e responsividade que são difíceis de avaliar só lendo código. Especialmente útil para confirmar se um ponto de fricção identificado na análise realmente acontece na prática, antes de propor a correção. Se o MCP não estiver disponível, sinalizar no retorno que a validação ficou restrita à análise estática do fluxo.
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — referência obrigatória para padrões de UX nativos do GLPI

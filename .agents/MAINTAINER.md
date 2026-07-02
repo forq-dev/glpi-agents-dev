@@ -494,6 +494,13 @@ Se o subagent entregar uma proposta sem essas informações, o Maintainer **deve
 - **Deve devolver:** análise de impacto em performance, identificação de queries sem índice, propostas de otimização dentro dos padrões do GLPI.
 - **Riscos a observar:** polling agressivo, queries N+1, joins sem índice, carregamento de assets desnecessários, crescimento descontrolado de tabelas.
 
+### CI/CD
+- **Acionar quando:** houver necessidade de criar/atualizar `.github/workflows/*.yml`, adicionar/remover versão do GLPI na matriz de CI, configurar ferramentas de qualidade cobradas pelo pipeline (PHPStan, Psalm, PHPCS, Rector, ESLint, Stylelint, TwigCS, cobertura de testes), configurar sincronização de traduções via Transifex, ou diagnosticar falha de pipeline.
+- **Não acionar quando:** a falha do CI é no código do plugin (lint/análise estática apontou algo real) ou no teste em si — nesses casos acionar `glpi-plugin-backend`/`glpi-plugin-frontend`/`glpi-plugin-qa` para corrigir a causa raiz, não este agente.
+- **Recebe:** `plugin-key`, versões do GLPI suportadas, ferramentas de qualidade já em uso, estado atual de `.github/workflows/`, se há cobertura de testes ou Transifex configurados.
+- **Deve devolver:** workflows criados/atualizados consumindo os reusable workflows oficiais (`glpi-project/plugin-ci-workflows`, `glpi-project/plugin-translation-workflows`) com versão pinada, arquivos de configuração de qualidade coerentes com o plugin, lista de secrets necessários (nome + propósito, nunca valor), e diagnóstico de causa raiz quando acionado para troubleshooting.
+- **Riscos a observar:** reusable workflow referenciado sem pin de versão (`@main`), triggers perigosos (`pull_request_target`, `workflow_run`), bloco `permissions:` ausente ou excessivamente amplo, secrets hardcoded, correção da causa raiz feita pelo agente errado.
+
 ### GLPI Integration
 - **Acionar quando:** há dúvida sobre como o GLPI core trata determinado mecanismo (hooks, direitos, entidades, CronTask, notificações, tabs, controllers).
 - **Não acionar quando:** o padrão já está documentado em `design-patterns-glpi.md` ou `decisions.md` sem ambiguidade.
@@ -680,6 +687,7 @@ Como este agente se encaixa no fluxo de orquestração do Maintainer:
 | API | [agents/glpi-plugin-api.md](file:///.agents/agents/glpi-plugin-api.md) | GLPI REST API externa, modelo de dados, itemtypes, automação e mock data |
 | UX | [agents/glpi-plugin-ux.md](file:///.agents/agents/glpi-plugin-ux.md) | Fluxos de interação, feedback visual, estados de interface, acessibilidade básica |
 | Performance | [agents/glpi-plugin-performance.md](file:///.agents/agents/glpi-plugin-performance.md) | Queries sem índice, N+1, polling, assets desnecessários, crescimento de tabelas |
+| CI/CD | [agents/glpi-plugin-cicd.md](file:///.agents/agents/glpi-plugin-cicd.md) | Workflows do GitHub Actions, matriz de versões GLPI, ferramentas de qualidade no pipeline, sincronização de traduções |
 
 > Novos subagents devem ser registrados nesta tabela e ter seu arquivo criado em `agents/` seguindo o modelo da seção anterior.
 
@@ -711,6 +719,22 @@ Skills instaladas no projeto em `.agents/skills/`. Descrições baseadas na leit
 | `brainstorming` | Facilitador de design estruturado: converte ideias vagas em especificações validadas antes de qualquer implementação. Processo em 7 etapas com "Understanding Lock" obrigatório, uma pergunta por vez, Decision Log, exploração de 2-3 alternativas e YAGNI. Proibido de implementar enquanto ativo. | Antes de planejar qualquer feature nova — especialmente quando a solução não está clara ou há alternativas técnicas a avaliar |
 | `gpt-taste` | Frontend para landing pages e páginas de marketing de nível award (Awwwards): GSAP pesado, AIDA structure, tipografia wide hero, bento grid sem gaps, pinned scroll, card stacking. Usa randomização determinística para evitar layouts genéricos. Exige pre-flight `<design_plan>` antes de qualquer código. | Exclusivamente para páginas de marketing ou landing pages standalone do plugin — não aplicável ao widget integrado ao GLPI |
 | `mermaid` | Gerador de diagramas Mermaid com suporte a 23 tipos (flowchart, sequenceDiagram, erDiagram, stateDiagram e outros). Lê a documentação de sintaxe do tipo escolhido antes de gerar. | Documentação técnica em `docs/architecture/` — somente quando um diagrama comunica algo que texto ou tabela não comunica bem. Uso regido pelas regras do `glpi-plugin-docs`. |
+| `github-actions-docs` | Fundamenta sintaxe e comportamento do GitHub Actions (workflow_call, matrix, concurrency, permissions, triggers, secrets/OIDC, reusable workflows) na documentação oficial do GitHub em vez de memória. | Toda criação ou revisão de `.github/workflows/*.yml` — especialmente ao consumir os reusable workflows do `glpi-project`. |
+| `ci-cd-security` | Escaneia YAML de workflow em busca de triggers perigosos (`pull_request_target`, `workflow_run`/pwn request), blocos `permissions` ausentes ou amplos demais, pinning de actions por tag mutável, e exposição de secrets/`GITHUB_TOKEN` em contexto de PR externo. Não executa nada — é leitura e análise do YAML. | Checklist obrigatório antes de finalizar qualquer workflow novo ou alterado em `.github/workflows/`. |
+
+---
+
+## MCPs disponíveis (opcionais, dependem do ambiente)
+
+Diferente de skills, MCPs não são copiados junto com o subagent para um projeto consumidor — dependem de o ambiente onde o Claude Code está rodando ter o servidor configurado (ver [`.mcp.json`](.mcp.json) neste repositório para o próprio desenvolvimento do framework). Cada subagent abaixo trata o MCP correspondente como um reforço opcional: usa quando disponível, cai de volta para o método manual equivalente (`curl` na documentação oficial, `gh` via Bash) quando não está.
+
+| MCP | Subagents que devem usar | Propósito |
+|---|---|---|
+| `context7` | `glpi-plugin-cicd`, `glpi-plugin-backend`, `glpi-plugin-frontend` | Documentação atualizada de pacotes Composer/npm e das ferramentas de qualidade do pipeline (PHPStan, ESLint, etc.) — nunca para APIs do próprio GLPI core, que continuam sendo `glpi-plugin-dev` + inspeção do core local. |
+| `github` | `glpi-plugin-cicd`, `glpi-plugin-security` | Inspecionar workflow runs reais e os reusable workflows oficiais do `glpi-project` (`glpi-plugin-cicd`); consultar Dependabot alerts/security advisories do repositório como insumo extra de auditoria (`glpi-plugin-security`). |
+| `playwright` | `glpi-plugin-ux`, `glpi-plugin-frontend`, `glpi-plugin-qa` | Controlar um navegador real para validar visualmente um fluxo antes de entregar a proposta (`ux`, `frontend`) ou para explorar um cenário antes de automatizá-lo (`qa`). Nunca substitui os testes versionados em `tests/python/` — é uso exploratório/de verificação pontual. |
+| `chrome-devtools` | `glpi-plugin-frontend` | Depuração profunda de bug de JS quando o `playwright` não é suficiente — console com stack trace mapeada e requisições de rede (payload, status, timing). Uso pontual de depuração, não validação visual de rotina. |
+| `deepwiki` | `glpi-plugin-cicd`, `glpi-plugin-api` | Entender rapidamente a arquitetura de um repositório público (reusable workflows do `glpi-project` para `cicd`; integrações/clientes de terceiros para `api`) via resposta sintetizada, sem precisar clonar ou ler arquivo por arquivo. Nunca substitui a skill `glpi-plugin-dev` como fonte de verdade sobre o GLPI core. |
 
 ---
 

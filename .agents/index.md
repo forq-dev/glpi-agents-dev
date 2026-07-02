@@ -22,7 +22,8 @@ Sistema de orquestração de IA para desenvolvimento de plugins GLPI.
 │   ├── glpi-plugin-docs.md
 │   ├── glpi-plugin-api.md
 │   ├── glpi-plugin-ux.md
-│   └── glpi-plugin-performance.md
+│   ├── glpi-plugin-performance.md
+│   └── glpi-plugin-cicd.md
 ├── references/                 ← contexto vivo do projeto (gerenciado por glpi-plugin-context)
 │   ├── context.md              ← identidade do projeto — preenchido via bootstrap
 │   ├── examples/               ← scripts e integrações existentes como referência
@@ -59,6 +60,7 @@ Sistema de orquestração de IA para desenvolvimento de plugins GLPI.
 | API | `agents/glpi-plugin-api.md` | GLPI REST API externa, itemtypes, automação |
 | UX | `agents/glpi-plugin-ux.md` | Fluxos de interação, feedback visual, acessibilidade |
 | Performance | `agents/glpi-plugin-performance.md` | Queries, polling, assets, N+1, crescimento de tabelas |
+| CI/CD | `agents/glpi-plugin-cicd.md` | Workflows do GitHub Actions, matriz de versões GLPI, ferramentas de qualidade no pipeline |
 
 ---
 

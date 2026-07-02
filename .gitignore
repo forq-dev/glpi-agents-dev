@@ -3,3 +3,10 @@
 # Garantir rastreamento da pasta de contexto do projeto
 !.plugin/
 !.plugin/**
+
+# Python caches and local envs
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/

@@ -1,5 +1,13 @@
 # glpi-plugin-qa
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `playwright` — explorar um cenário antes de automatizá-lo
+
+Usar para navegar interativamente por um fluxo antes de traduzi-lo em teste automatizado — útil para confirmar seletores, timing e comportamento real de um estado difícil de prever só lendo o código. Uso pontual e exploratório: o teste que efetivamente vale como entrega continua sendo o script `pytest-playwright` versionado em `tests/python/`, nunca a sessão interativa em si.
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — consultivo para entender o que validar

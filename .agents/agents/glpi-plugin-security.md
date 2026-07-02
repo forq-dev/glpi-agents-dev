@@ -1,5 +1,13 @@
 # glpi-plugin-security
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `github` — Dependabot alerts e security advisories do repositório
+
+Usar como insumo adicional (não substitui a análise de código) para verificar se há alertas de vulnerabilidade abertos em dependências do plugin (Dependabot) ou advisories relevantes no repositório, antes de fechar uma auditoria como aprovada. Se o MCP não estiver disponível no ambiente, sinalizar no relatório que essa checagem não foi possível em vez de omiti-la silenciosamente.
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — fonte canônica da checklist de segurança

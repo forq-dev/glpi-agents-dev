@@ -1,5 +1,13 @@
 # glpi-plugin-api
 
+## MCPs que este agente deve usar (quando disponível no ambiente)
+
+### `deepwiki` — entender rapidamente uma integração ou cliente de terceiros
+
+Usar quando a task envolve consumir/replicar o padrão de um repositório público de referência (ex: um cliente REST de terceiros que o plugin vai integrar) e uma resposta sintetizada sobre a arquitetura desse repositório economiza tempo em vez de explorar arquivo por arquivo. Nunca usar como fonte de verdade sobre a REST API do próprio GLPI — isso é sempre a skill `glpi-plugin-dev` e a documentação oficial validada via `curl`.
+
+---
+
 ## Skills que este agente deve usar
 
 ### `glpi-plugin-dev` — obrigatória para entender itemtypes e modelo de dados do GLPI
