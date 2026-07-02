@@ -40,8 +40,7 @@ cd /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat
 ```bash
 glpi-agents-sync bootstrap \
   --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat \
-  --source https://github.com/msouza10/glpi-agents-dev.git \
-  --ref main
+  --source https://github.com/msouza10/glpi-agents-dev.git
 ```
 
 5. Veja o que mudou:
@@ -96,8 +95,7 @@ Se você estiver começando do zero em uma pasta vazia, o fluxo continua o mesmo
 ```bash
 cd /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat
 /caminho/para/glpi-agents-dev/bin/glpi-agents-sync bootstrap \
-  --source https://github.com/msouza10/glpi-agents-dev.git \
-  --ref main
+  --source https://github.com/msouza10/glpi-agents-dev.git
 /caminho/para/glpi-agents-dev/bin/glpi-agents-sync status
 /caminho/para/glpi-agents-dev/bin/glpi-agents-sync sync --yes
 ```
@@ -109,8 +107,10 @@ Se você instalou o pacote com `pip install -e .`, pode usar `glpi-agents-sync` 
 Se preferir, rode o wrapper diretamente a partir da raiz deste repositório:
 
 ```bash
-./bin/glpi-agents-sync bootstrap --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat --source https://github.com/msouza10/glpi-agents-dev.git --ref main
+./bin/glpi-agents-sync bootstrap --root /home/h1d4n/Documents/dev-glpi/glpi/plugins/glpichat --source https://github.com/msouza10/glpi-agents-dev.git
 ```
+
+Se você não informar `--ref`, o bootstrap usa a branch padrão do repositório-fonte. Isso evita prender a instalação em `main` quando o remoto usa outra branch, como `master`.
 
 ## MCPs do framework
 
@@ -145,4 +145,5 @@ O template que gera `AGENTS.md` e `CLAUDE.md` vive em `system-prompts/AGENTS.md`
 
 - O framework é instalado na raiz do plugin, não na raiz do GLPI.
 - O CLI preserva arquivos locais do plugin que não pertencem ao framework.
+- O bootstrap só altera os caminhos gerenciados pelo framework; o resto do plugin continua sob seu controle.
 - Se o repositório-fonte mudar, o `sync` mostra o que precisa de confirmação antes de remover qualquer coisa.

@@ -13,7 +13,6 @@ from glpi_agents_sync.config import (
 )
 from glpi_agents_sync.models import SyncEntry, SyncManifest
 from glpi_agents_sync.source import (
-    DEFAULT_SOURCE_REF,
     DEFAULT_SOURCE_REPOSITORY,
     SourceFetchError,
     cleanup_source_tree,
@@ -71,7 +70,7 @@ def add_common_options(parser: argparse.ArgumentParser) -> None:
         "--ref",
         type=str,
         default=None,
-        help="Ref do repositorio-fonte. Padrao: main.",
+        help="Ref do repositorio-fonte. Padrao: branch padrao do repositorio-fonte.",
     )
     parser.add_argument(
         "--yes",
@@ -98,10 +97,10 @@ def run_command(args: argparse.Namespace) -> int:
 def run_bootstrap(project_root: Path, source_repo: str | None, source_ref: str | None) -> int:
     project_root.mkdir(parents=True, exist_ok=True)
     effective_source_repo = source_repo if source_repo is not None else DEFAULT_SOURCE_REPOSITORY
-    effective_source_ref = source_ref if source_ref is not None else DEFAULT_SOURCE_REF
-    source_tree = clone_source_tree(effective_source_repo, effective_source_ref)
+    source_tree = clone_source_tree(effective_source_repo, source_ref)
     try:
         entries = list_source_entries(source_tree.root)
+        effective_source_ref = source_tree.ref
         manifest = build_manifest(effective_source_repo, effective_source_ref, entries)
         plan = SyncPlan(actions=build_initial_actions(entries, project_root), manifest=manifest)
         result = apply_sync_plan(project_root, source_tree, plan, confirm_removals=True)

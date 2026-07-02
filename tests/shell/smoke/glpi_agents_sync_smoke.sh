@@ -36,7 +36,7 @@ EOF
 
 (
   cd "${source_repo}"
-  git init -b main >/dev/null
+  git init -b master >/dev/null
   git config user.email test@example.com
   git config user.name Test
   git add .
@@ -56,8 +56,7 @@ EOF
 
 PYTHONPATH="${repo_root}/src" "${repo_root}/bin/glpi-agents-sync" bootstrap \
   --root "${consumer_root}" \
-  --source "${source_repo}" \
-  --ref main >/dev/null
+  --source "${source_repo}" >/dev/null
 
 if [[ ! -f "${consumer_root}/.agents/example.txt" ]]; then
   echo "[FAIL] bootstrap nao criou o arquivo da origem" >&2
@@ -85,8 +84,7 @@ rm "${source_repo}/.agents/example.txt"
 set +e
 status_output="$(PYTHONPATH="${repo_root}/src" "${repo_root}/bin/glpi-agents-sync" sync \
   --root "${consumer_root}" \
-  --source "${source_repo}" \
-  --ref main 2>&1)"
+  --source "${source_repo}" 2>&1)"
 sync_status=$?
 set -e
 
@@ -104,7 +102,6 @@ fi
 confirmed_output="$(PYTHONPATH="${repo_root}/src" "${repo_root}/bin/glpi-agents-sync" sync \
   --root "${consumer_root}" \
   --source "${source_repo}" \
-  --ref main \
   --yes 2>&1)"
 
 if [[ -f "${consumer_root}/.agents/example.txt" ]]; then
@@ -120,4 +117,3 @@ if ! grep -q '\[REMOVER\]' <<<"${confirmed_output}"; then
 fi
 
 echo "[PASS] glpi_agents_sync_smoke"
-

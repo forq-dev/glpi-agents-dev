@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import tempfile
@@ -10,7 +9,6 @@ from pathlib import Path
 from glpi_agents_sync.models import SyncEntry
 
 DEFAULT_SOURCE_REPOSITORY = "https://github.com/msouza10/glpi-agents-dev.git"
-DEFAULT_SOURCE_REF = "main"
 
 
 class SourceFetchError(RuntimeError):
@@ -20,20 +18,15 @@ class SourceFetchError(RuntimeError):
 @dataclass(frozen=True, slots=True)
 class SourceTree:
     root: Path
+    ref: str
 
 
-def clone_source_tree(source_repo: str, source_ref: str) -> SourceTree:
+def clone_source_tree(source_repo: str, source_ref: str | None) -> SourceTree:
     temp_dir = Path(tempfile.mkdtemp(prefix="glpi-agents-sync-"))
-    clone_command = [
-        "git",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        source_ref,
-        source_repo,
-        str(temp_dir),
-    ]
+    clone_command = ["git", "clone", "--depth", "1"]
+    if source_ref is not None:
+        clone_command.extend(["--branch", source_ref])
+    clone_command.extend([source_repo, str(temp_dir)])
 
     try:
         completed = subprocess.run(
@@ -53,7 +46,43 @@ def clone_source_tree(source_repo: str, source_ref: str) -> SourceTree:
             f"{source_repo!r} na ref {source_ref!r}: {completed.stderr.strip()}"
         )
 
-    return SourceTree(root=temp_dir)
+    effective_ref = source_ref if source_ref is not None else detect_checked_out_ref(temp_dir)
+    return SourceTree(root=temp_dir, ref=effective_ref)
+
+
+def detect_checked_out_ref(source_root: Path) -> str:
+    command = [
+        "git",
+        "-C",
+        str(source_root),
+        "symbolic-ref",
+        "--short",
+        "HEAD",
+    ]
+
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise SourceFetchError("Git nao encontrado no PATH do ambiente atual.") from exc
+
+    if completed.returncode != 0:
+        raise SourceFetchError(
+            "Nao foi possivel detectar a ref padrao do repositorio-fonte "
+            f"em {source_root}: {completed.stderr.strip()}"
+        )
+
+    detected_ref = completed.stdout.strip()
+    if not detected_ref:
+        raise SourceFetchError(
+            f"Ref padrao vazia detectada para o repositorio-fonte em {source_root}"
+        )
+
+    return detected_ref
 
 
 def cleanup_source_tree(source_tree: SourceTree) -> None:
